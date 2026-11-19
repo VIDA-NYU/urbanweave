@@ -1,0 +1,5 @@
+Copied read-only from curio (packages/ai.utk.uhvi@1/sources/uhvi_statistics.py,
+packages/curio.weather@1/sources/weather_census.py) at commit 221541bf50323745fa7d9908d0911d4f2d120697 on 2026-11-19,
+to compare Curio's zonal means with urbanweave's cell_center mode. Do not edit.
+Sample data is read in place from the Curio checkout (CURIO_REPO, default ../curio):
+datasets/data.utk.milan-mrt@1/data/milan-mrt.tif, datasets/data.utk.milan-census-gt65@1/data/milan-census-gt65.geojson.
