@@ -77,3 +77,5 @@ Computing project, supported by the National Science Foundation under Awards
 [#2411223](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2411223). Any opinions, findings, and
 conclusions or recommendations expressed in this material are those of the authors and do not
 necessarily reflect the views of the National Science Foundation.
+
+<a href="https://oscur.org/"><img src="https://raw.githubusercontent.com/VIDA-NYU/urbanweave/main/docs/images/oscur-logo-gray.png" alt="OSCUR: Open-Source Cyberinfrastructure for Urban Computing" width="220"></a>
