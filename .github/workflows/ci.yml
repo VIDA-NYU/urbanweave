@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The newest releases of every dependency.
+          - name: current (Python 3.13, all extras)
+            python: "3.13"
+            install: uv pip install --system -e '.[raster,osm,dev]'
+          # The lowest versions pyproject.toml allows, for the core and each extra.
+          - name: lowest (Python 3.11, all extras)
+            python: "3.11"
+            install: >-
+              uv pip install --system --resolution lowest-direct -e . &&
+              uv pip install --system "rasterio==1.4.0" "exactextract==0.2.0" "osmnx==2.0.0" "networkx==3.0"
+              "rasterstats==0.20.0" pytest hypothesis
+          # The core alone: importing urbanweave must not need the extras.
+          - name: core only (Python 3.12)
+            python: "3.12"
+            install: uv pip install --system -e . pytest hypothesis
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v5
+      - name: Install
+        run: ${{ matrix.install }}
+      - name: Versions
+        run: python -c "from urbanweave.plan import engine_versions; print(engine_versions())"
+      - name: Tests
+        run: python -m pytest -q
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Build wheel and sdist
+        run: uv build
+      - name: Install the wheel alone and import it
+        run: |
+          uv venv /tmp/clean && uv pip install --python /tmp/clean dist/*.whl
+          /tmp/clean/bin/python -c "import urbanweave as uw; print(uw.__version__, sorted(uw.registry()['matching']))"

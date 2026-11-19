@@ -34,7 +34,8 @@ def test_grid_build_matches_h3_center_fill(cells):
 
 def test_points_use_the_h3_index_and_cells_outside_the_support_are_unmatched(cells):
     pts = _points()
-    pts.loc[len(pts)] = [1, Point(-73.90, 40.72)]  # east of the support
+    pts = pd.concat([pts, gpd.GeoDataFrame({"crashes": [1]}, geometry=[Point(-73.90, 40.72)], crs=4326)],
+                    ignore_index=True)  # one point east of the support
     m = uw.match(pts, cells, "contain")
     assert m.report["notes"]["lookup"] == "h3_index"
     expected = [h3.latlng_to_cell(p.y, p.x, 9) for p in pts.geometry]

@@ -16,6 +16,7 @@ from __future__ import annotations
 import geopandas as gpd
 import numpy as np
 
+from ..inputs import float_array
 from ..raster import read_raster, zonal_stats
 from ..reducers import mean
 
@@ -40,7 +41,7 @@ def uhvi_zonal_mean(first, second):
     out = zonal_stats(r, polygons.reset_index(drop=True), [mean(1, as_="uhvi_mean")], method="cell_center",
                       coverage_as=None)
     result = polygons.copy()
-    result["uhvi_mean"] = out["uhvi_mean"].astype(float).to_numpy()
+    result["uhvi_mean"] = float_array(out["uhvi_mean"])
     result.attrs.update(out.attrs)
     result.__dict__["metadata"] = {"name": "uhvi_zonal"}  # as Curio sets it, without a pandas warning
     return result
@@ -64,5 +65,5 @@ def utci_zonal_mean(raster, utci, census):
     if zones.crs is None:
         zones = zones.set_crs(raster.crs)
     out = zonal_stats(r, zones, [mean(1, as_="mean")], method="cell_center", coverage_as=None)
-    census["mean"] = out["mean"].astype(float).to_numpy()
+    census["mean"] = float_array(out["mean"])
     return census.loc[:, [census.geometry.name, "mean", "gt_65"]]

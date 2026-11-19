@@ -5,9 +5,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from rasterio.transform import from_origin
 
 pytest.importorskip("osmnx")
+pytest.importorskip("rasterio")
+from rasterio.transform import from_origin  # noqa: E402
 import urbanweave as uw  # noqa: E402
 from urbanweave import streets  # noqa: E402
 from urbanweave.errors import UnsupportedError  # noqa: E402

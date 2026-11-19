@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "sources": {
+    "crashes": {"kind": "vector", "columns": {"persons_injured": {"kind": "extensive", "units": "persons"}}}
+  },
+  "targets": {
+    "streets": {"kind": "osm_streets", "graphml": "data/street_graph.graphml", "representation": "physical"},
+    "nbhd": {"kind": "zones", "path": "data/neighborhoods.geojson"}
+  },
+  "steps": [
+    {"id": "street_crashes", "source": "crashes",
+     "match": {"method": "nearest_segment", "target": "streets", "max_distance": 30},
+     "aggregate": [{"method": "count", "as": "crashes", "fill_empty": 0},
+                   {"method": "sum", "column": "persons_injured", "as": "injured", "fill_empty": 0}]},
+    {"id": "neighborhood_crashes", "source": "@street_crashes",
+     "match": {"method": "length_weighted", "target": "nbhd", "shared_boundary": "lowest_target_id"},
+     "aggregate": [{"method": "density", "column": "crashes", "denominator": "overlap_length", "as": "crashes_per_road_km"},
+                   {"method": "sum", "column": "injured", "as": "injured"}]}
+  ]
+}

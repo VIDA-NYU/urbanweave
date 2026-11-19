@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d10" for="edge" attr.name="geometry" attr.type="string" />
+  <key id="d9" for="edge" attr.name="length" attr.type="string" />
+  <key id="d8" for="edge" attr.name="reversed" attr.type="string" />
+  <key id="d7" for="edge" attr.name="oneway" attr.type="string" />
+  <key id="d6" for="edge" attr.name="highway" attr.type="string" />
+  <key id="d5" for="edge" attr.name="name" attr.type="string" />
+  <key id="d4" for="edge" attr.name="osmid" attr.type="string" />
+  <key id="d3" for="node" attr.name="street_count" attr.type="string" />
+  <key id="d2" for="node" attr.name="y" attr.type="string" />
+  <key id="d1" for="node" attr.name="x" attr.type="string" />
+  <key id="d0" for="graph" attr.name="crs" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="1">
+      <data key="d1">500000.0</data>
+      <data key="d2">4500000.0</data>
+      <data key="d3">0</data>
+    </node>
+    <node id="2">
+      <data key="d1">501000.0</data>
+      <data key="d2">4500000.0</data>
+      <data key="d3">0</data>
+    </node>
+    <node id="3">
+      <data key="d1">502000.0</data>
+      <data key="d2">4500000.0</data>
+      <data key="d3">0</data>
+    </node>
+    <node id="4">
+      <data key="d1">501000.0</data>
+      <data key="d2">4500500.0</data>
+      <data key="d3">0</data>
+    </node>
+    <node id="5">
+      <data key="d1">501000.0</data>
+      <data key="d2">4499500.0</data>
+      <data key="d3">0</data>
+    </node>
+    <edge source="1" target="2" id="0">
+      <data key="d4">1</data>
+      <data key="d5">First St</data>
+      <data key="d6">residential</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">1000.0</data>
+      <data key="d10">LINESTRING (500000 4500000, 501000 4500000)</data>
+    </edge>
+    <edge source="1" target="2" id="1">
+      <data key="d4">6</data>
+      <data key="d5">Curve Ave</data>
+      <data key="d6">residential</data>
+      <data key="d7">True</data>
+      <data key="d8">False</data>
+      <data key="d9">1077.0329614269008</data>
+      <data key="d10">LINESTRING (500000 4500000, 500500 4500200, 501000 4500000)</data>
+    </edge>
+    <edge source="2" target="1" id="0">
+      <data key="d4">1</data>
+      <data key="d5">First St</data>
+      <data key="d6">residential</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">1000.0</data>
+      <data key="d10">LINESTRING (501000 4500000, 500000 4500000)</data>
+    </edge>
+    <edge source="2" target="3" id="0">
+      <data key="d4">2</data>
+      <data key="d5">First St</data>
+      <data key="d6">residential</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">1000.0</data>
+      <data key="d10">LINESTRING (501000 4500000, 502000 4500000)</data>
+    </edge>
+    <edge source="2" target="4" id="0">
+      <data key="d4">3</data>
+      <data key="d5">North St</data>
+      <data key="d6">residential</data>
+      <data key="d7">True</data>
+      <data key="d8">False</data>
+      <data key="d9">500.0</data>
+      <data key="d10">LINESTRING (501000 4500000, 501000 4500500)</data>
+    </edge>
+    <edge source="2" target="5" id="0">
+      <data key="d4">4</data>
+      <data key="d5">South Blvd</data>
+      <data key="d6">residential</data>
+      <data key="d7">True</data>
+      <data key="d8">False</data>
+      <data key="d9">500.0999900019995</data>
+      <data key="d10">LINESTRING (501000 4500000, 501005 4499750, 501000 4499500)</data>
+    </edge>
+    <edge source="3" target="2" id="0">
+      <data key="d4">2</data>
+      <data key="d5">First St</data>
+      <data key="d6">residential</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">1000.0</data>
+      <data key="d10">LINESTRING (502000 4500000, 501000 4500000)</data>
+    </edge>
+    <edge source="5" target="2" id="0">
+      <data key="d4">5</data>
+      <data key="d5">South Blvd</data>
+      <data key="d6">residential</data>
+      <data key="d7">True</data>
+      <data key="d8">False</data>
+      <data key="d9">500.0999900019995</data>
+      <data key="d10">LINESTRING (501000 4499500, 500995 4499750, 501000 4500000)</data>
+    </edge>
+    <data key="d0">EPSG:32618</data>
+  </graph>
+</graphml>

@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "crashes",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32618" } },
+"features": [
+{ "type": "Feature", "properties": { "crash_id": "c0", "persons_injured": 1 }, "geometry": { "type": "Point", "coordinates": [ 500100.0, 4500003.0 ] } },
+{ "type": "Feature", "properties": { "crash_id": "c1", "persons_injured": 0 }, "geometry": { "type": "Point", "coordinates": [ 500300.0, 4499998.0 ] } },
+{ "type": "Feature", "properties": { "crash_id": "c2", "persons_injured": 2 }, "geometry": { "type": "Point", "coordinates": [ 500600.0, 4500001.0 ] } },
+{ "type": "Feature", "properties": { "crash_id": "c3", "persons_injured": 1 }, "geometry": { "type": "Point", "coordinates": [ 500900.0, 4500000.0 ] } },
+{ "type": "Feature", "properties": { "crash_id": "c4", "persons_injured": 3 }, "geometry": { "type": "Point", "coordinates": [ 501500.0, 4500004.0 ] } },
+{ "type": "Feature", "properties": { "crash_id": "c5", "persons_injured": 1 }, "geometry": { "type": "Point", "coordinates": [ 500500.0, 4499800.0 ] } }
+]
+}

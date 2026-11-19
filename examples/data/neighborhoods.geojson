@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "neighborhoods",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32618" } },
+"features": [
+{ "type": "Feature", "properties": { "target_id": "west", "name": "West Side" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 501000.0, 4499400.0 ], [ 501000.0, 4500600.0 ], [ 499900.0, 4500600.0 ], [ 499900.0, 4499400.0 ], [ 501000.0, 4499400.0 ] ] ] } },
+{ "type": "Feature", "properties": { "target_id": "east", "name": "East Side" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 502100.0, 4499400.0 ], [ 502100.0, 4500600.0 ], [ 501000.0, 4500600.0 ], [ 501000.0, 4499400.0 ], [ 502100.0, 4499400.0 ] ] ] } }
+]
+}

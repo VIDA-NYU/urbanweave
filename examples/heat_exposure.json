@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "sources": {
+    "utci": {"kind": "raster", "columns": {"1": {"kind": "intensive", "units": "degC"}}}
+  },
+  "targets": {
+    "streets": {"kind": "osm_streets", "graphml": "data/street_graph.graphml", "representation": "physical"},
+    "nbhd": {"kind": "zones", "path": "data/neighborhoods.geojson"}
+  },
+  "steps": [
+    {"id": "street_pieces", "source": {"target": "streets"},
+     "convert": {"method": "split_lines", "target": "nbhd"}},
+    {"id": "piece_heat", "source": "utci",
+     "convert": {"method": "along_lines", "target": "@street_pieces",
+                 "aggregate": [{"method": "weighted_mean", "column": 1, "as": "utci_mean",
+                                "weighted_total_as": "utci_m_sum", "valid_measure_as": "valid_street_m"},
+                               {"method": "max", "column": 1, "as": "utci_max"}]}},
+    {"id": "neighborhood_heat", "source": "@piece_heat",
+     "reduce": {"by": "zone_id", "target": "nbhd",
+                "aggregate": [{"method": "ratio_of_sums", "numerator": "utci_m_sum",
+                               "denominator": "valid_street_m", "as": "utci_mean", "units": "degC"}]}}
+  ]
+}

@@ -211,6 +211,11 @@ def prepare_layer(
     )
 
 
+def float_array(values) -> np.ndarray:
+    """*values* as a float64 NumPy array: missing and non-numeric values become NaN (nullable dtypes too)."""
+    return pd.to_numeric(pd.Series(values), errors="coerce").to_numpy(dtype=float, na_value=np.nan)
+
+
 def points_from_columns(df: pd.DataFrame, *, lat: str, lon: str, crs="EPSG:4326") -> gpd.GeoDataFrame:
     """Points from latitude and longitude columns.
 

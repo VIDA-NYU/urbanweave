@@ -28,9 +28,12 @@ def _conversions() -> dict:
     except ImportError:
         pass
     try:
+        import importlib.util
+
         from .streets import CONVERSIONS as STREET_CONVERSIONS
 
-        out.update(STREET_CONVERSIONS)
+        has_raster = importlib.util.find_spec("rasterio") is not None
+        out.update({k: v for k, v in STREET_CONVERSIONS.items() if k != "along_lines" or has_raster})
     except ImportError:
         pass
     return out

@@ -39,7 +39,7 @@ from shapely.geometry import LineString, Point
 
 from . import measure as _measure
 from .errors import InputError, MissingDependencyError, UnsupportedError
-from .inputs import SUPPORT_ATTR, prepare_layer, resolve_ids
+from .inputs import SUPPORT_ATTR, float_array, prepare_layer, resolve_ids
 from .reducers import Reduction
 from .reports import REPORT_ATTR, Report, id_list, plain
 
@@ -371,19 +371,19 @@ def reduce(table: pd.DataFrame, *, by: str, targets: gpd.GeoDataFrame, reduction
             for c in (num, den):
                 if c not in table.columns:
                     raise InputError(f"Column {c!r} is not in the table.")
-            a = pd.to_numeric(table[num], errors="coerce").astype(float)
-            b = pd.to_numeric(table[den], errors="coerce").astype(float)
+            a = pd.Series(float_array(table[num]), index=table.index)
+            b = pd.Series(float_array(table[den]), index=table.index)
             both = a.notna() & b.notna() & np.isfinite(a) & np.isfinite(b)
             sa = a[both].groupby(table.loc[both, by]).sum()
             sb = b[both].groupby(table.loc[both, by]).sum()
             ratio = (sa / sb.where(sb != 0)).reindex(ids)
-            out[r.alias] = _f(ratio.to_numpy(dtype=float))
+            out[r.alias] = _f(float_array(ratio))
             rep.append({"method": r.method, "as": r.alias, "rows_used": int(both.sum()), "rows_skipped": int((~both).sum()),
                         "zero_denominator_targets": int((sb == 0).sum())})
         elif r.method == "sum":
-            v = pd.to_numeric(table[r.column], errors="coerce").astype(float)
+            v = pd.Series(float_array(table[r.column]), index=table.index)
             s = v.groupby(table[by]).sum(min_count=1).reindex(ids)
-            out[r.alias] = _f(s.to_numpy(dtype=float))
+            out[r.alias] = _f(float_array(s))
             rep.append({"method": "sum", "as": r.alias})
         else:
             raise UnsupportedError(f"reduce offers ratio_of_sums and sum, not {r.method!r}.")

@@ -87,7 +87,7 @@ def test_a_point_on_a_shared_vertex_counts_once():
     src = _points(30)
     cell = h3.latlng_to_cell(40.715, -73.975, RES)
     lat, lng = h3.cell_to_boundary(cell)[0]
-    src.loc[len(src)] = [5.0, Point(lng, lat)]
+    src = pd.concat([src, gpd.GeoDataFrame({"v": [5.0]}, geometry=[Point(lng, lat)], crs=4326)], ignore_index=True)
     _, w, legacy = _legacy_grid(src, BinaryContainment(), A.SumAggregation())
     new = compat.run(src, "v", RES, "BinaryContainment", "SumAggregation")["grid"]
     vertex_id = str(len(src) - 1)

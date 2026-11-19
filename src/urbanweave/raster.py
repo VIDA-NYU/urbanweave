@@ -352,15 +352,12 @@ def zonal_stats(
     u = raster.unit_to_m()
     zone_area = shapely.area(geoms) * (u * u) if u is not None else np.full(n, np.nan)
 
-    # Cells each zone holds: (rows, cols, weights) in raster coordinates.
-    cells = _exact_cells(raster, geoms, max_cells_in_memory) if exact else _center_cells(raster, geoms)
-
     acc = {(z, r_i): _Acc(r.method) for z in range(n) for r_i, r in enumerate(reductions)}
     geo_w = np.zeros(n)
     valid_w = {b.name: np.zeros(n) for b in bands_used}
     valid_n = {b.name: np.zeros(n, dtype=np.int64) for b in bands_used}
     selected = np.zeros(n, dtype=np.int64)
-    for z, (rows, cols, w) in enumerate(cells):
+    for z, (rows, cols, w) in _zone_cells(raster, geoms, exact, max_cells_in_memory):
         if len(rows) == 0:
             continue
         selected[z] = len(rows)
@@ -496,6 +493,29 @@ def _finish(r: Reduction, accs: list[_Acc], selected: np.ndarray, exact: bool, c
 def _raster_bounds(raster: Raster):
     t = raster.transform
     return (t.c, t.f + t.e * raster.height, t.c + t.a * raster.width, t.f)
+
+
+def _zone_cells(raster: Raster, geoms: np.ndarray, exact: bool, max_cells: int):
+    """(zone index, rows, cols, weights) per zone, in batches whose cells fit in *max_cells*.
+
+    Each batch's cells are computed, yielded and dropped before the next, so memory stays bounded
+    by the batch, not by the whole set of zones.
+    """
+    t = raster.transform
+    b = shapely.bounds(np.asarray([g if g is not None else shapely.Point() for g in geoms], dtype=object))
+    est = np.nan_to_num(((b[:, 2] - b[:, 0]) / abs(t.a) + 2) * ((b[:, 3] - b[:, 1]) / abs(t.e) + 2), nan=0.0)
+    start = 0
+    n = len(geoms)
+    while start < n:
+        end, total = start, 0.0
+        while end < n and (end == start or total + est[end] <= max_cells):
+            total += est[end]
+            end += 1
+        idx = np.arange(start, end)
+        batch = _exact_cells(raster, geoms[idx], max_cells) if exact else _center_cells(raster, geoms[idx])
+        for k, cells in zip(idx, batch):
+            yield int(k), cells
+        start = end
 
 
 def _exact_cells(raster: Raster, geoms: np.ndarray, max_cells: int):

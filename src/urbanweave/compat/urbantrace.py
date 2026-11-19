@@ -45,6 +45,7 @@ import pandas as pd
 from .. import reducers as R
 from ..aggregation import aggregate
 from ..errors import InputError, UnsupportedError
+from ..inputs import float_array
 from ..matching import match
 from ..registry import problems, registry
 from ..targets import h3_cells
@@ -132,7 +133,7 @@ def target_normalized_sum(m, values: pd.Series) -> np.ndarray:
     p = m.positions
     size, _ = m.target_sizes()  # km
     length_m = size * 1e3
-    v = values.to_numpy(dtype=float)[p["src"].to_numpy()]
+    v = float_array(values)[p["src"].to_numpy()]
     contrib = p["overlap_measure"].to_numpy() / length_m[p["tgt"].to_numpy()] * v
     ok = np.isfinite(contrib)
     out = np.bincount(p["tgt"].to_numpy()[ok], weights=contrib[ok], minlength=len(m.targets))
@@ -225,7 +226,7 @@ def run(
         if output == "grid_with_zone_values":
             p = m2.positions
             gamma = p["allocation_fraction"].to_numpy() if "allocation_fraction" in m2.quantities else p["overlap_measure"].to_numpy()
-            zvals = pd.to_numeric(zone_out["zone_value"], errors="coerce").to_numpy(dtype=float)[p["tgt"].to_numpy()]
+            zvals = float_array(zone_out["zone_value"])[p["tgt"].to_numpy()]
             ok = np.isfinite(zvals)
             n = len(m2.sources)
             num = np.bincount(p["src"].to_numpy()[ok], weights=(gamma * zvals)[ok], minlength=n)
