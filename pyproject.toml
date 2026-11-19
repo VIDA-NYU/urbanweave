@@ -32,6 +32,8 @@ dependencies = [
     "pyproj>=3.6",
     "geopandas>=1.0",
     "h3>=4.1",
+    "jupyterlab>=4.6.6",
+    "ipykernel>=7.4.0",
 ]
 
 [project.urls]

@@ -142,6 +142,21 @@ values (temperature, median income) are averaged by overlap; *categorical* value
 shares or a majority. Declaring a column's kind lets urbanweave refuse a reduction that does not fit,
 such as summing median incomes.
 
+The terms come from physics, where an *extensive* property scales with the size of a system (mass,
+energy: join two systems and they add) and an *intensive* one does not (temperature, density: join
+two systems at 20°C and you still have 20°C); the distinction is usually credited to Tolman (1917).
+The areal interpolation literature carried it over to space: a *spatially extensive* variable is a
+total that splits when its area is split, a *spatially intensive* one is a ratio, average or density
+that does not (Goodchild and Lam 1980; Lam 1983). That is now the standard vocabulary of moving data
+between zones, used for instance by tobler's `extensive_variables` and `intensive_variables`.
+urbanweave adds *categorical* from GIS practice, and applies the same kinds beyond polygons: they also
+decide how values move between rasters, H3 cells, streets and points.
+
+- R. C. Tolman, "The measurable quantities of physics", *Physical Review* 9(3), 1917.
+- M. F. Goodchild and N. S.-N. Lam, "Areal interpolation: a variant of the traditional spatial
+  problem", *Geo-Processing* 1, 1980.
+- N. S.-N. Lam, "Spatial interpolation methods: a review", *The American Cartographer* 10(2), 1983.
+
 **Measurement.** Each step measures in one projected CRS: the one given, or a local UTM zone
 resolved from the study area and reported. Topology (containment, intersections, shared boundaries)
 is evaluated in the targets' own CRS, so reprojection cannot move a point across a boundary. Study

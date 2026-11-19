@@ -13,7 +13,7 @@ numbers in them (fractions, lengths, weights) are computed by urbanweave from th
 | [0. Data and concepts](00_data_and_concepts.ipynb) | Coordinates, vector geometries, rasters and nodata, H3 cells, street graphs, match → aggregate, value kinds; each drawn schematically, then shown in Riverton's data. |
 | [1. First steps](01_first_steps.ipynb) | Crashes from a lat/lon table onto H3 cells, then onto districts; reading a report; the registry. |
 | [2. Matching methods](02_matching_methods.ipynb) | `contain`, `centroid` vs `representative_point`, `area_overlap`, `largest_overlap`, `nearest` with a distance limit, `within_distance` (split or replicated), the Gaussian kernel. |
-| [3. Aggregation and reports](03_aggregation_and_reports.ipynb) | Extensive, intensive and categorical values; declared kinds; zero versus missing; `where`; shares and majority; partial coverage; exact integer sums. |
+| [3. Aggregation and reports](03_aggregation_and_reports.ipynb) | Extensive, intensive and categorical values, and where the terms come from; declared kinds; zero versus missing; `where`; shares and majority; partial coverage; exact integer sums. |
 | [4. H3 as a bridge](04_h3_as_a_bridge.ipynb) | A grid as the meeting point: grid to polygons, to points (cell lookup) and to lines (length in each cell); grids from cell IDs. |
 | [5. Rasters and zonal statistics](05_rasters_and_zonal_statistics.ipynb) | Heat and land cover by district; exact coverage versus cell centres on small zones; nodata and zones off the raster. |
 | [6. Streets](06_streets.ipynb) | Physical segments and intersections from an OSMnx graph; crashes per road-km; heat along streets pooled by district. |
