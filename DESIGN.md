@@ -318,10 +318,10 @@ Next, as uses appear:
   touching the extent.
 - **Density normalizations:** per km and per node are the defaults on lines and points; are others
   needed (per lane-km, per capita)?
-- **Dasymetric and pycnophylactic methods:** dasymetric disaggregation with a point prior is four
-  `match`/`aggregate` calls (the NYC taxi example, `examples/nyc_taxi/`); should it become one
-  function, and should rasters (land use, building floor area) serve as priors too? Pycnophylactic
-  interpolation: reuse tobler's, or implement it with urbanweave's reports and chaining.
+- **Dasymetric and pycnophylactic methods:** `uw.dasymetric` spreads zone totals over targets with
+  weighted point priors (pieces by `area_overlap`, priors by `contain`, calibration per zone). Should
+  smoothed priors (a kernel density per target) and rasters (land use, floor area) be accepted too?
+  Pycnophylactic interpolation: reuse tobler's, or implement it with urbanweave's reports and chaining.
 - **Raster stack:** rioxarray and dask for multi-band, time-stacked or lazy rasters; Zarr outputs.
 - **Time:** temporal binning (per hour, per month) as another kind of step.
 

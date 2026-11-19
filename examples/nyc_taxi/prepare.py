@@ -11,6 +11,9 @@ Writes, into --out:
   keeping only coordinates inside a box around NYC (records at (0, 0) and other bad GPS fixes go).
 - ``zone_counts.csv``: yellow-taxi pickups per taxi zone (``PULocationID``) for each month of the
   TLC Parquet files given (2016 onwards, when trip records carry zones instead of coordinates).
+- ``poi/``: the point-of-interest priors of the CRIF draft, from NYC Open Data: ``hotels.csv``
+  (Hotels Properties Citywide, ``tjus-cn27``: one row per hotel unit per tax year),
+  ``businesses.csv`` (``d8ic-tk4f``) and ``commonplace.csv`` (CommonPlace, ``t95h-5fsr``).
 
 DuckDB reads the large files (about 15 million trips a month) in seconds; the notebook then needs
 only these small files.
@@ -21,6 +24,7 @@ from __future__ import annotations
 import argparse
 import io
 import re
+import ssl
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -28,15 +32,42 @@ from pathlib import Path
 import duckdb
 
 ZONES_URL = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zones.zip"
+POI = {  # NYC Open Data (Socrata) dataset IDs
+    "hotels.csv": "tjus-cn27",
+    "businesses.csv": "d8ic-tk4f",
+    "commonplace.csv": "t95h-5fsr",
+}
 NYC_BOX = (-74.30, 40.45, -73.65, 40.95)  # lon/lat bounds that contain the five boroughs
+
+
+def _open(url: str, timeout: int):
+    """urlopen with certifi's certificates when available (some Python builds lack system ones)."""
+    try:
+        import certifi
+        ctx = ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        ctx = ssl.create_default_context()
+    return urllib.request.urlopen(url, timeout=timeout, context=ctx)
 
 
 def zones(out: Path) -> Path:
     target = out / "taxi_zones"
     if not list(target.glob("**/taxi_zones.shp")):
-        with urllib.request.urlopen(ZONES_URL, timeout=60) as r:
+        with _open(ZONES_URL, 60) as r:
             zipfile.ZipFile(io.BytesIO(r.read())).extractall(target)
     return next(target.glob("**/taxi_zones.shp"))
+
+
+def poi(out: Path) -> None:
+    folder = out / "poi"
+    folder.mkdir(exist_ok=True)
+    for name, ident in POI.items():
+        path = folder / name
+        if not path.exists():
+            url = f"https://data.cityofnewyork.us/resource/{ident}.csv?$limit=500000"
+            with _open(url, 120) as r:
+                path.write_bytes(r.read())
+        print(f"poi/{name}:", sum(1 for _ in path.open()) - 1, "rows")
 
 
 def pickups(con, csv: Path, n: int, seed: int) -> "duckdb.DuckDBPyRelation":
@@ -70,6 +101,7 @@ def main(argv=None):
     args.out.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect()
     print("zones:", zones(args.out))
+    poi(args.out)
     for month in (1, 7):
         rel = pickups(con, args.foil2013 / f"trip_data_{month}.csv", args.sample, seed=month)
         path = args.out / f"pickups_2013-{month:02d}.parquet"

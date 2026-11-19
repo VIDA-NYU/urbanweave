@@ -14,6 +14,7 @@ replayable plans in :mod:`urbanweave.plan`.
 from . import targets
 from ._version import __version__
 from .aggregation import aggregate
+from .dasymetric import dasymetric
 from .errors import InputError, MissingDependencyError, PlanError, UnsupportedError, UrbanweaveError
 from .inputs import points_from_columns
 from .matching import METHODS, MatchResult, match
@@ -54,7 +55,7 @@ def __getattr__(name):
 
 
 __all__ = [
-    "__version__", "match", "aggregate", "MatchResult", "METHODS", "targets", "points_from_columns",
+    "__version__", "match", "aggregate", "dasymetric", "MatchResult", "METHODS", "targets", "points_from_columns",
     "registry", "validate", "report_of", "Report", "Reduction",
     "count", "weighted_count", "sum", "density", "mean", "weighted_mean", "median", "weighted_median",
     "min", "max", "majority", "shares", "first", "last", "join", "custom",

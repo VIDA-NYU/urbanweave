@@ -17,6 +17,11 @@ spread the same way. With urbanweave it is four `match`/`aggregate` calls.
 
 The notebook is saved with its outputs, so it reads without the data.
 
+`compare_priors.py` repeats the July 2013 test with `uw.dasymetric` and other priors: the points of
+interest of the CRIF draft (hotels, businesses, common places), alone, combined with CRIF's weighting
+rule (fitted on January), and blended with the historical prior, at H3 resolutions 8 to 10. Results
+are in `results/priors_comparison_res<R>.md`.
+
 ## Running it
 
 The data is not in the repository. You need:
