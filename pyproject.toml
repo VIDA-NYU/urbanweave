@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "urbanweave"
+dynamic = ["version"]
+description = "Spatial integration for urban analysis: match sources to targets and aggregate their values, vector and grid."
+readme = "README.md"
+license = "BSD-3-Clause"
+requires-python = ">=3.11"
+authors = [{ name = "Claudio Silva" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+# The core: vector and H3 matching and aggregation.
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "shapely>=2.0.4",
+    "pyproj>=3.6",
+    "geopandas>=1.0",
+    "h3>=4.1",
+]
+
+[project.optional-dependencies]
+# Zonal statistics and other raster paths.
+raster = ["rasterio>=1.4", "exactextract>=0.2"]
+# Street and intersection targets built from OpenStreetMap graphs.
+osm = ["osmnx>=2.0", "networkx>=3.0"]
+dev = [
+    "pytest>=8",
+    "hypothesis>=6.100",
+    "tobler>=0.12",
+    "rasterstats>=0.20",
+]
+
+[tool.hatch.version]
+path = "src/urbanweave/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/urbanweave"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/urbanweave", "tests", "examples", "README.md", "PLAN.md", "DESIGN-spatial-integration-package.md", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "raster: needs the raster extra (rasterio, exactextract)",
+    "osm: needs the osm extra (osmnx)",
+    "legacy: compares with copied UrbanTrace or Curio code",
+    "slow: larger comparisons and benchmarks, not run by default",
+]
+addopts = "-m 'not slow'"
+filterwarnings = ["error::FutureWarning:urbanweave"]
