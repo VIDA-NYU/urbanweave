@@ -8,8 +8,9 @@ it without modifying it.
 1. the column named by the caller (``source_id=`` or ``target_id=``);
 2. otherwise the column named ``source_id`` (for sources) or ``target_id`` (for targets), when
    the frame has one;
-3. otherwise, for a frame urbanweave built (a target, or a result on one), its ``target_id``
-   column, so a step's output keeps its IDs when it becomes the next step's sources;
+3. otherwise, for sources, a ``target_id`` column, so a step's output (or a target, such as
+   streets) keeps its IDs when it becomes the next step's sources, even after a round trip
+   through a file;
 4. otherwise the frame's index.
 
 IDs must be unique and non-null. They are kept as they are (no conversion to strings) and carried
@@ -111,7 +112,7 @@ def resolve_ids(frame: pd.DataFrame, role: str, id_column: str | None) -> tuple[
     elif f"{role}_id" in frame.columns:
         used = f"{role}_id"
         ids = pd.Index(frame[used].to_numpy(), name=used)
-    elif SUPPORT_ATTR in getattr(frame, "attrs", {}) and "target_id" in frame.columns:
+    elif role == "source" and "target_id" in frame.columns:
         used = "target_id"
         ids = pd.Index(frame[used].to_numpy(), name=used)
     else:
