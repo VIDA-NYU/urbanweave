@@ -71,6 +71,19 @@ def _fmt(v) -> str:
     return str(v)
 
 
+def _short(v) -> str:
+    """A legend bound: 12k, 1.5M; small numbers as _fmt."""
+    try:
+        a = abs(float(v))
+    except (TypeError, ValueError):
+        return _fmt(v)
+    if a >= 1e6:
+        return f"{float(v) / 1e6:.3g}M"
+    if a >= 1e4:
+        return f"{float(v) / 1e3:.3g}k"
+    return _fmt(v)
+
+
 def _png(rgba: np.ndarray) -> str:
     """An RGBA uint8 array as a base64 PNG (no imaging library needed)."""
     h, w, _ = rgba.shape
@@ -464,7 +477,7 @@ class Map:
                                f'style="fill:var(--s{k})"/>')
                 for k, e in enumerate(scale.bounds):
                     out.append(f'<text x="{x + k * sw - (1 if k else 0):.1f}" y="{yy + 23:.1f}" '
-                               f'text-anchor="{"start" if k == 0 else "middle"}">{_fmt(e)}</text>')
+                               f'text-anchor="{"start" if k == 0 else "middle"}">{_short(e)}</text>')
                 xm = x + n * sw + 14
             else:
                 xm = x

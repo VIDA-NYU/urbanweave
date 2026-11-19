@@ -68,7 +68,7 @@ available. Keep library releases independent of consumer deployment schedules.
       `1e-9` where the areas, lengths and expected results are well scaled. Use exact equality for IDs, unit
       integers and report counts. Record looser tolerances for measured reprojection fixtures along with the
       CRS and reason.
-      *Done:* 1e-9 for projected fixtures; 1e-6 for allocation flags after reprojection; 1e-7 where
+      *Done:* 1e-9 for projected fixtures; 1e-5 for allocation flags after reprojection; 1e-7 where
       exactextract's single-precision fractions are summed; 2e-3 for EPSG:3857-vs-UTM comparisons with legacy.
 
 ## 1. Implement the vector and H3 core

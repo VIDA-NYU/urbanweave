@@ -46,6 +46,11 @@ zones = uw.aggregate(uw.match(grid, nta, "area_overlap"), None, [uw.sum("crashes
 figures, then walk through matching, aggregation, H3, rasters, streets and plans on a synthetic town, with
 SVG maps; they run offline.
 
+**Example:** [NYC taxi pickups from zone counts](https://github.com/VIDA-NYU/urbanweave/blob/main/examples/nyc_taxi/README.md)
+recovers block-level taxi pickups for 2016–2021, when TLC published only taxi zones, by dasymetric
+disaggregation with 2013's coordinates as the prior: four `match`/`aggregate` calls, tested against
+a month with known locations.
+
 The design, with the project's history and goals, is in [DESIGN.md](https://github.com/VIDA-NYU/urbanweave/blob/main/DESIGN.md),
 the sequence and release gates in [PLAN.md](https://github.com/VIDA-NYU/urbanweave/blob/main/PLAN.md), and where each plan item stands in
 [STATUS.md](https://github.com/VIDA-NYU/urbanweave/blob/main/STATUS.md).

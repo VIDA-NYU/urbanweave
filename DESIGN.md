@@ -242,8 +242,9 @@ conventions, wire units (density per m²) and weighting basis, and lists each de
   matching. Null, empty and invalid source geometries, and coordinates outside the range of a
   geographic CRS, are excluded and reported by cause; a layer whose coordinates are all out of range
   is refused as a probably mislabelled CRS.
-- **Tolerances.** Allocation fractions are checked against 1 with a tolerance of 1e-6, which covers
-  the cut points of an overlay after reprojection.
+- **Tolerances.** Allocation fractions are checked against 1 with a tolerance of 1e-5, which covers
+  the rounding of an overlay's cut points after reprojection (up to about 1.4e-6 on real data in State
+  Plane feet cut by H3 cells) while still flagging any real overlap between targets.
 - **Order.** Results follow target order; shuffling the input rows changes nothing.
 
 ## 7. Relation to other tools
@@ -317,8 +318,10 @@ Next, as uses appear:
   touching the extent.
 - **Density normalizations:** per km and per node are the defaults on lines and points; are others
   needed (per lane-km, per capita)?
-- **tobler's other methods:** reuse its dasymetric and pycnophylactic interpolation, or implement
-  them with urbanweave's reports and chaining.
+- **Dasymetric and pycnophylactic methods:** dasymetric disaggregation with a point prior is four
+  `match`/`aggregate` calls (the NYC taxi example, `examples/nyc_taxi/`); should it become one
+  function, and should rasters (land use, building floor area) serve as priors too? Pycnophylactic
+  interpolation: reuse tobler's, or implement it with urbanweave's reports and chaining.
 - **Raster stack:** rioxarray and dask for multi-band, time-stacked or lazy rasters; Zarr outputs.
 - **Time:** temporal binning (per hour, per month) as another kind of step.
 

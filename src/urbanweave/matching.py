@@ -49,8 +49,9 @@ GAUSSIAN_CUTOFF_SIGMAS = float(np.sqrt(2 * np.log(100)))  # about 3.03
 _REL_EPS = 1e-12
 #: How far a source's summed fractions may stray from 1 before the report calls it partial or
 #: over-allocated. Overlays cut in the targets' CRS and measured after projection differ from the
-#: whole by up to about 1e-7 (a cut point on an edge does not project exactly onto the edge).
-ALLOCATION_TOLERANCE = 1e-6
+#: whole by rounding: about 1e-7 for UTM fixtures, and up to 1.4e-6 for NYC taxi zones in State
+#: Plane feet cut by H3 cells in degrees. Real overlaps between targets are far larger.
+ALLOCATION_TOLERANCE = 1e-5
 
 QUANTITIES = ("allocation_fraction", "overlap_measure", "sample_weight", "distance_m")
 

@@ -701,3 +701,43 @@ def plan_flow() -> Figure:
         p.line([a, b], arrow=True)
     p.line([(602, 60), (602, 100), (532, 100)], arrow=True, dash=True)
     return Figure("A plan: validate, run, record, replay", [p])
+
+
+def dasymetric() -> Figure:
+    """Dasymetric disaggregation: a zone total spread over cells the way a prior sample spreads."""
+    zone = Polygon([(8, 12), (70, 5), (95, 40), (80, 92), (25, 88), (5, 55)])
+    rng = np.random.default_rng(4)
+    pts = []
+    while len(pts) < 70:  # pickups crowd along an avenue (x ≈ 55) and a cross street (y ≈ 45)
+        if rng.random() < 0.55:
+            x, y = 55 + rng.normal(0, 3.5), rng.uniform(8, 92)
+        else:
+            x, y = rng.uniform(5, 95), 45 + rng.normal(0, 3.5)
+        if zone.contains(Point(x, y)):
+            pts.append((x, y))
+    r = 9.0
+    hexes = [(c, _hex(*c, r)) for c in _hex_lattice(r, -5, 105, -5, 105)]
+    hexes = [(c, h) for c, h in hexes if zone.contains(Point(c))]
+    counts = {c: sum(h.contains(Point(p)) for p in pts) for c, h in hexes}
+    total, prior = 1200, sum(counts.values())
+
+    a = Panel(f"Later years report only the zone's total: {total:,} pickups, with no locations.",
+              heading="1 · Zone totals only", w=200, h=170)
+    a.geom(zone, "tgt").text(50, 50, f"{total:,}", cls="title")
+    b = Panel("An earlier year with exact coordinates shows where, inside the zone, pickups happen.",
+              heading="2 · A prior with locations", w=200, h=170)
+    b.geom(zone, "tgt", opacity=0.35)
+    for x, y in pts:
+        b.point(x, y, "src-pt", r=2.6)
+    c = Panel(f"Each cell gets the total times its share of the prior: the {total:,} trips land where taxis "
+              "actually stop, and the zone's total is kept.", heading="3 · Total spread like the prior", w=220, h=170)
+    top = max(counts.values()) or 1
+    for cc, h in hexes:
+        k = counts[cc]
+        px, py = c.xy(*h.exterior.coords[0])
+        c.geom(h, "cell")
+        if k:
+            c.geom(h, "sel", opacity=0.25 + 0.75 * k / top)
+            c.text(cc[0], cc[1], f"{total * k / prior:.0f}", cls="val", dy=3)
+    c.geom(zone, "none", width=1.8)
+    return Figure("Dasymetric disaggregation", [a, b, c])

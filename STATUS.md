@@ -36,7 +36,7 @@ exactextract 0.2.0, OSMnx 2.0.0). The wheel installs and imports with no extras.
       kept as `target_normalized_sum`; `BinaryContainment` on MultiPoints has no equivalent (refused with
       the reason).
 - [x] Minimum versions confirmed in CI (`.github/workflows/ci.yml`: current, lowest, core only).
-- [x] Analytical fixtures with tolerances: 1e-9 for projected fixtures; 1e-6 for allocation flags
+- [x] Analytical fixtures with tolerances: 1e-9 for projected fixtures; 1e-5 for allocation flags
       after reprojection (documented in `matching.ALLOCATION_TOLERANCE`); 1e-7 where exactextract's
       single-precision coverage fractions are summed; 2e-3 for EPSG:3857-vs-UTM comparisons with legacy.
 

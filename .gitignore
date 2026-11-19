@@ -7,3 +7,5 @@ __pycache__/
 dist/
 build/
 .urbanweave-cache/
+examples/nyc_taxi/data/
+.ipynb_checkpoints/
