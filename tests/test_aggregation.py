@@ -7,7 +7,7 @@ import pytest
 import urbanweave as uw
 from urbanweave.errors import InputError, UnsupportedError
 
-from .conftest import TOL, frame, pt, sq
+from .conftest import TOL, frame, ln, pt, sq
 
 
 @pytest.fixture
@@ -41,6 +41,23 @@ def test_weighted_median(two_zones):
     src = frame([sq(0, 0, 10, 1), sq(0, 1, 10, 2), sq(0, 3, 10, 7)], v=[1.0, 2.0, 3.0])
     out = uw.aggregate(uw.match(src, two_zones, "area_overlap"), None, [uw.weighted_median("v")])
     assert out["weighted_median_v"].iloc[0] == 3.0  # 70% of the area holds 3
+
+
+@pytest.mark.parametrize("method", ["area_overlap", "largest_overlap"])
+def test_overlap_length_density_refuses_area(two_zones, method):
+    sources = frame([sq(0, 0, 10)], total=[20])
+    m = uw.match(sources, two_zones, method)
+    with pytest.raises(UnsupportedError, match="overlap lengths from source lines"):
+        uw.aggregate(m, reductions=uw.density("total", denominator="overlap_length"))
+
+
+@pytest.mark.parametrize("method", ["length_weighted", "largest_overlap"])
+def test_overlap_length_density_accepts_lengths(two_zones, method):
+    sources = frame([ln((0, 1), (10, 1))], total=[20])
+    m = uw.match(sources, two_zones, method)
+    out = uw.aggregate(m, reductions=uw.density("total", denominator="overlap_length"))
+    assert out["density_total"].iloc[0] == pytest.approx(2000, **TOL)
+    assert pd.isna(out["density_total"].iloc[1])
 
 
 def test_not_numeric_values_are_reported_apart_from_missing(two_zones, pts):

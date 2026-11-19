@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 
 from .errors import InputError, UnsupportedError
-from .inputs import resolve_ids
+from .inputs import LINE, resolve_ids
 from .matching import MatchResult
 from .reducers import Reduction
 from .reports import REPORT_ATTR, Report, id_list, plain
@@ -100,8 +100,12 @@ def check_reduction(r: Reduction, match: MatchResult | None, kinds: dict, column
                 raise UnsupportedError(f"{r.method} needs {q}, which {match.method} does not provide "
                                        f"(it provides {', '.join(match.quantities)}).")
         if r.method == "density" and r.options.get("denominator", "target_size") == "overlap_length":
-            if "overlap_measure" not in match.quantities:
-                raise UnsupportedError(f"density per overlap length needs overlap lengths, which {match.method} does not provide.")
+            if ("overlap_measure" not in match.quantities or LINE not in match.spec.sources
+                    or match.sources.families() - {LINE}):
+                raise UnsupportedError(
+                    f"density per overlap length needs overlap lengths from source lines. "
+                    f"The {match.method} match does not provide a length-only overlap measure."
+                )
         basis = r.options.get("basis")
         if basis and basis != "unit" and basis not in match.quantities:
             raise UnsupportedError(f"{r.method}: basis {basis!r} is not provided by {match.method}.")

@@ -8,14 +8,17 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pytest
+from shapely.geometry import Point
 
-pytest.importorskip("rasterio")
+rasterio = pytest.importorskip("rasterio")
 pytest.importorskip("osmnx")
 import urbanweave as uw  # noqa: E402
+from urbanweave import plan as plan_module  # noqa: E402
 from urbanweave.errors import PlanError  # noqa: E402
+from urbanweave.inputs import SUPPORT_ATTR  # noqa: E402
 from urbanweave.plan import Plan, frame_from_snapshot, frame_snapshot, replay  # noqa: E402
 
-from .conftest import frame, pt, sq  # noqa: E402
+from .conftest import UTM18, X0, Y0, frame, pt, sq  # noqa: E402
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
 
@@ -136,6 +139,66 @@ def test_run_manifest_and_replay_round_trip(examples, tmp_path):
     shutil.rmtree(examples / "data")
     third = replay(tmp_path / "run.json", cache=cache)
     pd.testing.assert_frame_equal(first.result.drop(columns="geometry"), third.result.drop(columns="geometry"))
+
+
+@pytest.mark.parametrize("legacy_snapshot", [False, True])
+def test_replay_keeps_h3_boundary_assignments(tmp_path, monkeypatch, legacy_snapshot):
+    extent = [-74.00, 40.70, -73.96, 40.74]
+    spec = _simple_plan(targets={"cells": {"kind": "h3", "extent": extent, "resolution": 9}})
+    # A vertex shared by several cells, where H3 lookup and polygon coverage can choose different IDs.
+    xy = uw.targets.cell_polygon("892a100d063ffff").exterior.coords[0]
+    points = frame([Point(xy)], crs=4326)
+
+    def snapshot_without_support(data):
+        data = data.copy()
+        data.attrs.pop(SUPPORT_ATTR, None)
+        return frame_snapshot(data)
+
+    with monkeypatch.context() as patch:
+        if legacy_snapshot:
+            patch.setattr(plan_module, "frame_snapshot", snapshot_without_support)
+        run = Plan(spec).run({"points": points}, cache=tmp_path)
+    again = replay(run.manifest, cache=tmp_path)
+
+    assert run.reports["counts"]["match"]["notes"]["lookup"] == "h3_index"
+    assert again.reports["counts"]["match"]["notes"]["lookup"] == "h3_index"
+    pd.testing.assert_series_equal(again.result["n"], run.result["n"])
+    if not legacy_snapshot:
+        assert again.result.attrs[SUPPORT_ATTR] == run.result.attrs[SUPPORT_ATTR]
+
+
+def test_replay_keeps_overrides_for_each_raster_binding(tmp_path):
+    path = tmp_path / "heat.tif"
+    transform = rasterio.transform.from_origin(X0, Y0 + 1, 1, 1)
+    with rasterio.open(path, "w", driver="GTiff", width=2, height=1, count=1, dtype="float32",
+                       crs=UTM18, transform=transform) as dataset:
+        dataset.write(np.array([[10.0, 30.0]], dtype="float32"), 1)
+    frame([sq(0, 0, 2, 1)]).to_file(tmp_path / "zone.geojson")
+    spec = {
+        "version": 1,
+        "targets": {"zone": {"kind": "zones", "path": "zone.geojson"}},
+        "steps": [
+            {"id": name, "source": name,
+             "convert": {"method": "zonal_stats", "target": "zone",
+                         "aggregate": [{"method": "mean", "column": 1, "as": "heat"}]}}
+            for name in ("original", "masked")
+        ],
+    }
+    cache = tmp_path / "cache"
+    with uw.read_raster(path) as original, uw.read_raster(
+        path, nodata=10, names=["temperature"], value_kind="intensive", units="degC"
+    ) as masked:
+        run = Plan(spec, base_dir=tmp_path).run({"original": original, "masked": masked}, cache=cache)
+    path.unlink()
+    legacy_manifest = json.loads(run.manifest_path.read_text())
+    for record in legacy_manifest["sources"].values():
+        del record["raster"]
+
+    for manifest in (run.manifest_path, legacy_manifest):
+        again = replay(manifest, cache=cache)
+        assert again["original"]["heat"].tolist() == run["original"]["heat"].tolist() == [20.0]
+        assert again["masked"]["heat"].tolist() == run["masked"]["heat"].tolist() == [30.0]
+        assert again.reports["masked"]["raster"] == run.reports["masked"]["raster"]
 
 
 def test_a_file_changed_in_place_needs_a_new_run(simple, tmp_path):

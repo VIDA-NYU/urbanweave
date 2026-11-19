@@ -51,6 +51,7 @@ import shapely
 from ._version import __version__
 from .aggregation import REDUCERS, aggregate, check_reduction
 from .errors import InputError, PlanError, UnsupportedError, UrbanweaveError
+from .inputs import SUPPORT_ATTR
 from .matching import METHODS, match
 from .reducers import Reduction
 from .reports import plain
@@ -110,7 +111,7 @@ def _json_value(v):
 
 
 def frame_snapshot(frame: pd.DataFrame) -> bytes:
-    """A deterministic text snapshot of a (Geo)DataFrame: schema, index, columns, geometry as WKB hex."""
+    """Snapshot a frame's schema, values, WKB geometry and spatial support metadata."""
     geometry = frame.geometry.name if isinstance(frame, gpd.GeoDataFrame) else None
     columns = [c for c in frame.columns if c != geometry]
     doc = {
@@ -123,6 +124,9 @@ def frame_snapshot(frame: pd.DataFrame) -> bytes:
         doc["geometry"] = {"name": geometry, "crs": frame.crs.to_wkt() if frame.crs else None,
                            "wkb_hex": [None if g is None else shapely.to_wkb(g, hex=True, byte_order=1)
                                        for g in frame.geometry.array]}
+        support = frame.attrs.get(SUPPORT_ATTR)
+        if support is not None:
+            doc["support"] = plain(support)
     return json.dumps(doc, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
 
 
@@ -146,8 +150,11 @@ def frame_from_snapshot(data: bytes) -> pd.DataFrame:
     if "geometry" in doc:
         g = doc["geometry"]
         geoms = gpd.GeoSeries([None if h is None else shapely.from_wkb(h) for h in g["wkb_hex"]], index=idx, crs=g["crs"])
-        out = gpd.GeoDataFrame(df, geometry=geoms)
-        return out.rename_geometry(g["name"]) if g["name"] != "geometry" else out
+        df = gpd.GeoDataFrame(df, geometry=geoms)
+        if g["name"] != "geometry":
+            df = df.rename_geometry(g["name"])
+        if "support" in doc:
+            df.attrs[SUPPORT_ATTR] = doc["support"]
     return df
 
 
@@ -260,8 +267,6 @@ _RASTER_SUFFIXES = (".tif", ".tiff", ".vrt", ".img", ".nc")
 
 
 def _resolve_object(obj, *, base: Path, selector: dict | None = None) -> _Input:
-    from .raster import Raster  # noqa: F401 - optional
-
     selector = selector or {}
     if isinstance(obj, (str, Path)):
         path = Path(obj)
@@ -286,7 +291,8 @@ def _resolve_object(obj, *, base: Path, selector: dict | None = None) -> _Input:
             path = Path(obj.dataset.name)
             sel = {"bands": [b.index for b in obj.bands]} | selector
             return _Input(obj, "raster", file_fingerprint(path), "file", {path.name: path},
-                          {"kind": "raster", "origin": "file", "name": path.name, "selector": sel})
+                          {"kind": "raster", "origin": "file", "name": path.name, "selector": sel,
+                           "raster": obj.describe()})
         arr, meta = raster_snapshot(obj)
         fp = _sha256(arr + meta)
         return _Input(obj, "raster", fp, "memory", {"raster.npy": arr, "raster.json": meta},
@@ -294,8 +300,9 @@ def _resolve_object(obj, *, base: Path, selector: dict | None = None) -> _Input:
     raise PlanError(f"Cannot bind {type(obj).__name__} as a plan input; give a GeoDataFrame, a Raster, or a file path.")
 
 
-def _load_artifact(cache: Cache, fingerprint: str):
-    """The object stored as an artifact, after checking its content still has its fingerprint."""
+def _load_artifact(cache: Cache, record: dict):
+    """Verify the artifact and load it with the input binding's recorded settings."""
+    fingerprint = record["fingerprint"]
     if not cache.has(fingerprint):
         raise PlanError(f"artifact {fingerprint[:12]} is missing from the cache")
     info = cache.info(fingerprint)
@@ -304,10 +311,22 @@ def _load_artifact(cache: Cache, fingerprint: str):
         path = folder / info["name"]
         if file_fingerprint(path) != fingerprint:
             raise PlanError(f"artifact {fingerprint[:12]} ({info['name']}) changed in the cache")
-        if info["kind"] == "raster":
+        if record["kind"] == "raster":
             from .raster import read_raster
 
-            return read_raster(path, bands=info.get("selector", {}).get("bands")), path
+            if "raster" not in record:
+                return read_raster(path, bands=record.get("selector", {}).get("bands")), path
+
+            from rasterio.transform import Affine
+
+            from .raster import Band
+
+            description = record["raster"]
+            bands = [Band(**band) for band in description["bands"]]
+            raster = read_raster(path, bands=[band.index for band in bands], crs=description["crs"])
+            raster.bands = bands
+            raster.transform = Affine(*description["transform"])
+            return raster, path
         return path, path
     if info["kind"] == "vector":
         data = (folder / "frame.json").read_bytes()
@@ -733,6 +752,23 @@ def _major(version: str) -> str:
     return parts[0] if parts[0] != "0" else ".".join(parts[:2])
 
 
+def _replay_records(plan: Plan, manifest: dict) -> tuple[dict, dict]:
+    """Read binding settings, recovering older raster settings from the saved step reports."""
+    sources, targets = dict(manifest["sources"]), dict(manifest["targets"])
+    for step, evaluated in zip(plan.spec["steps"], manifest.get("steps", [])):
+        description = (evaluated.get("report") or {}).get("raster")
+        if description is None:
+            continue
+        kind, name = _ref(step["source"])
+        if kind == "step":
+            continue
+        records = targets if kind == "target" or name not in sources else sources
+        record = records.get(name, {})
+        if record.get("kind") == "raster" and record.get("origin") == "file" and "raster" not in record:
+            records[name] = record | {"raster": description}
+    return sources, targets
+
+
 def replay(manifest, *, cache, sources: dict | None = None, allow_engine_drift: bool = False) -> PlanRun:
     """Rerun a manifest from its pinned artifacts (see the module docstring).
 
@@ -753,14 +789,17 @@ def replay(manifest, *, cache, sources: dict | None = None, allow_engine_drift: 
             if not allow_engine_drift:
                 problems.append(f"engine {name} is {now[name]}, the run used {version} (incompatible)")
     plan = Plan(manifest["plan"], base_dir=manifest.get("base_dir"))
-    if plan.fingerprint != manifest["plan_fingerprint"]:
+    if plan.fingerprint == manifest["plan_fingerprint"]:
+        source_records, target_records = _replay_records(plan, manifest)
+    else:
         problems.append("the plan in the manifest does not match its fingerprint")
+        source_records, target_records = manifest["sources"], manifest["targets"]
     bound, targets = {}, {}
     given = dict(sources or {})
-    for name, rec in manifest["sources"].items():
+    for name, rec in source_records.items():
         try:
             if rec.get("snapshotted"):
-                obj, path = _load_artifact(store, rec["fingerprint"])
+                obj, path = _load_artifact(store, rec)
                 inp = _Input(path if path is not None and rec["kind"] == "vector" else obj, rec["kind"], rec["fingerprint"],
                              rec["origin"], {}, rec)
             elif name in given:
@@ -774,9 +813,14 @@ def replay(manifest, *, cache, sources: dict | None = None, allow_engine_drift: 
             bound[name] = inp
         except PlanError as exc:
             problems.append(f"source {name!r}: {exc}")
-    for name, rec in manifest["targets"].items():
+    for name, rec in target_records.items():
         try:
-            obj, path = _load_artifact(store, rec["fingerprint"])
+            obj, path = _load_artifact(store, rec)
+            if rec.get("target_kind") == "h3" and SUPPORT_ATTR not in obj.attrs:
+                from .targets import as_h3
+
+                # Older snapshots saved the cell IDs and geometry without marking the H3 support.
+                obj = as_h3(obj, "target_id")
             targets[name] = _Input(path if path is not None and rec["kind"] == "vector" else obj, rec["kind"],
                                    rec["fingerprint"], rec["origin"], {}, rec)
         except PlanError as exc:
