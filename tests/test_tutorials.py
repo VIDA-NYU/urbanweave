@@ -90,3 +90,29 @@ def test_notebook_runs(notebook):
     import run_tutorials
 
     run_tutorials.run(TUTORIALS / notebook, save=False)
+
+
+def test_every_concept_figure_renders():
+    import inspect
+
+    import diagrams
+
+    figures = [f for name, f in inspect.getmembers(diagrams, inspect.isfunction)
+               if f.__module__ == "diagrams" and not name.startswith("_")]
+    assert len(figures) >= 16
+    for f in figures:
+        root = ET.fromstring(f().to_svg())
+        assert root.tag == f"{SVG}svg" and float(root.get("width")) > 0, f.__name__
+
+
+def test_figures_show_what_urbanweave_computes():
+    import diagrams
+
+    import re
+
+    def words(fig):  # caption lines joined, tags dropped
+        return " ".join(re.sub(r"<[^>]+>", " ", fig.to_svg()).split())
+
+    assert "overlaps most (A)" in words(diagrams.area_overlap())  # the target urbanweave chose
+    assert "the lowest ID (A)" in words(diagrams.contain())
+    assert "on edge → A" in words(diagrams.contain())

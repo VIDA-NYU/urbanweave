@@ -1,12 +1,16 @@
 # urbanweave tutorials
 
-Seven short notebooks that walk through the package on **Riverton**, a synthetic town of 3 km × 2 km
+Eight short notebooks that walk through the package on **Riverton**, a synthetic town of 3 km × 2 km
 (`tutorial_data.py`), so they run offline in a few seconds each. Every map is a static SVG drawn by
 `svgmap.py`, so the notebooks render the same on GitHub, in JupyterLab and in VS Code, in light and
-dark themes, and hovering a feature shows its ID and values.
+dark themes, and hovering a feature shows its ID and values. Schematic figures (`diagrams.py`), in the
+style of the [Autark tutorial](https://github.com/ctsilva/autark-tutorial)'s drawings, show the data
+models and what each operation does; orange is always the source and blue the target, and the
+numbers in them (fractions, lengths, weights) are computed by urbanweave from the drawn shapes.
 
 | Notebook | What it shows |
 |---|---|
+| [0. Data and concepts](00_data_and_concepts.ipynb) | Coordinates, vector geometries, rasters and nodata, H3 cells, street graphs, match → aggregate, value kinds; each drawn schematically, then shown in Riverton's data. |
 | [1. First steps](01_first_steps.ipynb) | Crashes from a lat/lon table onto H3 cells, then onto districts; reading a report; the registry. |
 | [2. Matching methods](02_matching_methods.ipynb) | `contain`, `centroid` vs `representative_point`, `area_overlap`, `largest_overlap`, `nearest` with a distance limit, `within_distance` (split or replicated), the Gaussian kernel. |
 | [3. Aggregation and reports](03_aggregation_and_reports.ipynb) | Extensive, intensive and categorical values; declared kinds; zero versus missing; `where`; shares and majority; partial coverage; exact integer sums. |
@@ -29,6 +33,14 @@ the current code with
 .venv/bin/python tools/run_tutorials.py            # all, or name prefixes: 03 05
 .venv/bin/python tools/run_tutorials.py --check    # run without saving (CI does this)
 ```
+
+## The figures
+
+`diagrams.py` has one function per concept, each returning a figure that a notebook shows inline:
+`coordinates`, `geometry_types`, `raster_anatomy`, `h3_support`, `street_graph`,
+`match_and_aggregate`, `value_kinds`, `contain`, `centroid_and_representative_point`,
+`area_overlap`, `nearest_and_within_distance`, `gaussian`, `grid_to_targets`, `zonal_rules`,
+`along_lines_and_split` and `plan_flow`.
 
 ## The maps
 

@@ -37,8 +37,9 @@ zones = uw.aggregate(uw.match(grid, nta, "area_overlap"), None, [uw.sum("crashes
   conventions on urbanweave; `urbanweave.compat.curio` has drop-in versions of Curio's UHVI and
   Weather zonal means.
 
-**Tutorials:** seven notebooks in [tutorials/](tutorials/README.md) walk through matching, aggregation,
-H3, rasters, streets and plans on a synthetic town, with SVG maps; they run offline.
+**Tutorials:** eight notebooks in [tutorials/](tutorials/README.md) introduce the data models with schematic
+figures, then walk through matching, aggregation, H3, rasters, streets and plans on a synthetic town, with
+SVG maps; they run offline.
 
 The design is in [DESIGN-spatial-integration-package.md](DESIGN-spatial-integration-package.md),
 the sequence and release gates in [PLAN.md](PLAN.md), and where each plan item stands in

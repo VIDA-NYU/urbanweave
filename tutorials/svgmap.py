@@ -163,16 +163,16 @@ class Map:
         return self
 
     def lines(self, frame, column: str | None = None, *, scheme: str | None = None, classes: int = 6, bounds=None,
-              legend: str | None = None, width: float = 2.0, tooltip=()):
+              legend: str | None = None, width: float = 2.0, tooltip=(), order=None):
         """Lines, colored by *column* or in the line ink."""
-        scale = self._scale(frame, column, scheme, classes, bounds, legend) if column else None
+        scale = self._scale(frame, column, scheme, classes, bounds, legend, order) if column else None
         self._layers.append(("lines", frame, column, scale, width, tuple(tooltip)))
         return self
 
     def dots(self, frame, column: str | None = None, *, scheme: str | None = None, classes: int = 6, bounds=None,
-             legend: str | None = None, radius: float = 3.0, tooltip=(), label: str | None = None):
+             legend: str | None = None, radius: float = 3.0, tooltip=(), label: str | None = None, order=None):
         """Points as dots, colored by *column* or in the dot ink."""
-        scale = self._scale(frame, column, scheme, classes, bounds, legend) if column else None
+        scale = self._scale(frame, column, scheme, classes, bounds, legend, order) if column else None
         self._layers.append(("dots", frame, column, scale, radius, tuple(tooltip), label))
         return self
 
