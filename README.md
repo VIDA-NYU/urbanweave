@@ -37,6 +37,9 @@ zones = uw.aggregate(uw.match(grid, nta, "area_overlap"), None, [uw.sum("crashes
   conventions on urbanweave; `urbanweave.compat.curio` has drop-in versions of Curio's UHVI and
   Weather zonal means.
 
+**Tutorials:** seven notebooks in [tutorials/](tutorials/README.md) walk through matching, aggregation,
+H3, rasters, streets and plans on a synthetic town, with SVG maps; they run offline.
+
 The design is in [DESIGN-spatial-integration-package.md](DESIGN-spatial-integration-package.md),
 the sequence and release gates in [PLAN.md](PLAN.md), and where each plan item stands in
 [STATUS.md](STATUS.md).
@@ -49,6 +52,7 @@ uv pip install --python .venv -e '.[raster,osm,dev]'
 .venv/bin/python -m pytest -q                 # the regular suite
 .venv/bin/python -m pytest -q -m slow         # comparisons on Curio's Milan sample data (minutes)
 .venv/bin/python tools/urbantrace_corpus.py   # inventory and old/new comparison on UrbanTrace's catalog
+.venv/bin/python tools/run_tutorials.py       # rerun the tutorial notebooks, refreshing their outputs
 .venv/bin/python tools/benchmark.py points --n 2000000
 ```
 

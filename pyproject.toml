@@ -29,6 +29,8 @@ dependencies = [
 raster = ["rasterio>=1.4", "exactextract>=0.2"]
 # Street and intersection targets built from OpenStreetMap graphs.
 osm = ["osmnx>=2.0", "networkx>=3.0"]
+# Running the tutorial notebooks (tutorials/, executed by tools/run_tutorials.py).
+tutorials = ["nbformat>=5.9", "nbclient>=0.10", "ipykernel>=6.29"]
 dev = [
     "pytest>=8",
     "hypothesis>=6.100",

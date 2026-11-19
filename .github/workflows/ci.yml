@@ -16,7 +16,8 @@ jobs:
           # The newest releases of every dependency.
           - name: current (Python 3.13, all extras)
             python: "3.13"
-            install: uv pip install --system -e '.[raster,osm,dev]'
+            install: uv pip install --system -e '.[raster,osm,dev,tutorials]'
+            tutorials: true
           # The lowest versions pyproject.toml allows, for the core and each extra.
           - name: lowest (Python 3.11, all extras)
             python: "3.11"
@@ -40,6 +41,9 @@ jobs:
         run: python -c "from urbanweave.plan import engine_versions; print(engine_versions())"
       - name: Tests
         run: python -m pytest -q
+      - name: Tutorials
+        if: matrix.tutorials
+        run: python tools/run_tutorials.py --check
 
   package:
     runs-on: ubuntu-latest
