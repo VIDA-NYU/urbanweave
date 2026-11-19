@@ -3,7 +3,7 @@
 The first release extracts the local vector and H3 operators used by UrbanTrace into an installable Python
 package. The first raster release adds zonal statistics for Curio’s UHVI and Weather nodes. Street analysis
 and reusable JSON plans follow once the core numerical contract has been tested in both applications. The
-[design document](DESIGN-spatial-integration-package.md) describes the public behavior and longer-term
+[design document](DESIGN.md) describes the public behavior and longer-term
 scope.
 
 ## Status (2026-11-19)

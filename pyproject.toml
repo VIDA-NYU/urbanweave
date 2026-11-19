@@ -45,7 +45,7 @@ path = "src/urbanweave/_version.py"
 packages = ["src/urbanweave"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/urbanweave", "tests", "examples", "README.md", "PLAN.md", "DESIGN-spatial-integration-package.md", "pyproject.toml"]
+include = ["src/urbanweave", "tests", "examples", "README.md", "PLAN.md", "DESIGN.md", "STATUS.md", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

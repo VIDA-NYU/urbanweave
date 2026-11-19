@@ -41,7 +41,7 @@ zones = uw.aggregate(uw.match(grid, nta, "area_overlap"), None, [uw.sum("crashes
 figures, then walk through matching, aggregation, H3, rasters, streets and plans on a synthetic town, with
 SVG maps; they run offline.
 
-The design is in [DESIGN-spatial-integration-package.md](DESIGN-spatial-integration-package.md),
+The design, with the project's history and goals, is in [DESIGN.md](DESIGN.md),
 the sequence and release gates in [PLAN.md](PLAN.md), and where each plan item stands in
 [STATUS.md](STATUS.md).
 
