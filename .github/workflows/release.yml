@@ -1,0 +1,50 @@
+name: Release
+
+# Pushing a tag vX.Y.Z (or vX.Y.ZaN, ...) whose version equals src/urbanweave/_version.py builds the
+# wheel and sdist, tests the wheel, and publishes both to PyPI through trusted publishing: PyPI trusts
+# this workflow in this repository, so no token is stored. The publisher is registered on pypi.org
+# (project urbanweave: owner VIDA-NYU, repository urbanweave, workflow release.yml, environment pypi).
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: The tag names the package version
+        run: |
+          version=$(python3 -c "import re; print(re.search(r'\"(.+)\"', open('src/urbanweave/_version.py').read()).group(1))")
+          test "${GITHUB_REF_NAME}" = "v${version}" || { echo "tag ${GITHUB_REF_NAME} != v${version}"; exit 1; }
+      - name: Build
+        run: uv build
+      - name: Check the metadata
+        run: uvx twine check --strict dist/*
+      - name: Install the wheel alone and run the tests
+        run: |
+          uv venv /tmp/release && uv pip install --python /tmp/release "$PWD/$(ls dist/*.whl)[raster,osm,dev,tutorials]"
+          # The tests read the examples and tutorials beside them; the package comes from the wheel.
+          mkdir /tmp/wheel-tests && cp -r tests examples tutorials pyproject.toml /tmp/wheel-tests/
+          cd /tmp/wheel-tests && /tmp/release/bin/python -m pytest -q -p no:cacheprovider
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/urbanweave/
+    permissions:
+      id-token: write  # trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

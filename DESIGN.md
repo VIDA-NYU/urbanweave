@@ -4,6 +4,11 @@ Claudio Silva, with Claude. November 2026. This document describes urbanweave 0.
 exists, what it does, and the rules it follows. The sequence of work and its release gates are in
 [PLAN.md](PLAN.md); where each item stands is in [STATUS.md](STATUS.md).
 
+urbanweave is developed by the OSCUR team at VIDA-NYU
+([github.com/VIDA-NYU/urbanweave](https://github.com/VIDA-NYU/urbanweave)), released on PyPI as
+`urbanweave` (first release 0.1.0a1, an alpha), and licensed under MIT, copyright Claudio Silva and
+New York University. OSCUR is funded by the National Science Foundation (section 11).
+
 ## 1. Summary
 
 urbanweave is a Python package for **spatial integration**: moving data from the shape it was
@@ -285,7 +290,14 @@ Next, as uses appear:
 
 ## 10. Open questions
 
-- **Home:** VIDA-NYU or OSCUR, and claiming the name on PyPI before announcing.
+- **Leaving alpha:** what must hold before 0.1.0: UrbanTrace running on the compatibility layer in
+  production, at least one Curio package using the zonal-statistics replacements, and benchmarks on
+  the real NYC crash and land-cover data rather than synthetic stand-ins?
+- **Consumers:** whether Curio's node code may import urbanweave (its owner's decision), and whether
+  UrbanTrace keeps its own `/api/operators` shape through the compatibility layer or moves to the
+  registry's schema.
+- **Figures in the package:** the tutorials' SVG maps and concept figures are teaching aids beside
+  the notebooks; should a small plotting module for match results and reports ship in the package?
 - **H3 coverage:** keep centre-based selection, or also offer a covering that includes every cell
   touching the extent.
 - **Density normalizations:** per km and per node are the defaults on lines and points; are others
@@ -294,3 +306,13 @@ Next, as uses appear:
   them with urbanweave's reports and chaining.
 - **Raster stack:** rioxarray and dask for multi-band, time-stacked or lazy rasters; Zarr outputs.
 - **Time:** temporal binning (per hour, per month) as another kind of step.
+
+## 11. Acknowledgements
+
+urbanweave is part of [OSCUR](https://oscur.org/), the Open-Source Cyberinfrastructure for Urban
+Computing project, supported by the National Science Foundation under Awards
+[#2411221](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2411221),
+[#2411222](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2411222) and
+[#2411223](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2411223). Any opinions, findings, and
+conclusions or recommendations expressed in this material are those of the authors and do not
+necessarily reflect the views of the National Science Foundation.

@@ -1,13 +1,22 @@
 # Status against PLAN.md
 
-As of 2026-11-19. UrbanTrace and Curio were only read: their code is copied into `tests/legacy/`
+As of 2026-11-19, version 0.1.0a1. UrbanTrace and Curio were only read: their code is copied into `tests/legacy/`
 at the revisions recorded there, and nothing in either repository was changed. Steps that must
 happen inside those repositories are marked **in the consumer**: urbanweave provides what they call.
 
-Tests: 115 in the regular suite (`pytest -q`), plus the Milan comparison (`-m slow`). They pass on
+Tests: 130 in the regular suite (`pytest -q`), plus the Milan comparison (`-m slow`), which also runs the eight tutorial notebooks. They pass on
 Python 3.13 with current releases, and on Python 3.11 with the lowest versions pyproject.toml allows
 (NumPy 1.26, pandas 2.2, Shapely 2.0.4, pyproj 3.6, GeoPandas 1.0, h3 4.1, rasterio 1.4.0,
 exactextract 0.2.0, OSMnx 2.0.0). The wheel installs and imports with no extras.
+
+## Release
+
+- Repository: [VIDA-NYU/urbanweave](https://github.com/VIDA-NYU/urbanweave), maintained by the OSCUR
+  team; MIT, copyright Claudio Silva and New York University.
+- PyPI: `urbanweave` 0.1.0a1, an alpha prerelease that claims the name (`pip install --pre
+  urbanweave`). `.github/workflows/release.yml` builds and checks the wheel and sdist, runs the tests
+  against the installed wheel, and publishes through PyPI trusted publishing when a `v*` tag matching
+  `_version.py` is pushed; no token is stored.
 
 ## 0. Baselines and contracts
 
@@ -86,10 +95,14 @@ exactextract 0.2.0, OSMnx 2.0.0). The wheel installs and imports with no extras.
 Not started, as PLAN.md gates them on consumer use: whole-grid statistics for Rasterization,
 rasterization and resampling, A5, interpolation, other targets.
 
+## Comparisons with other libraries
+
+- Vector results agree with Tobler's area interpolation (`tests/test_tobler.py`: extensive with
+  `allocate_total=False`, intensive, categorical shares, and a target half outside the sources).
+- Raster results agree with exactextract (exact coverage) and rasterstats (cell centres).
+
 ## Benchmarks (synthetic stand-ins, this machine)
 
 - 500,000 points onto 7,434 H3 resolution-9 cells over NYC: match 0.85 s, aggregate 0.09 s.
-- Vector results agree with Tobler's area interpolation (`tests/test_tobler.py`: extensive with
-  `allocate_total=False`, intensive, categorical shares, and a target half outside the sources).
 - Land-cover shares, 8,000 × 8,000 1 m tiled GeoTIFF, 500 zones: 4.3 s, 0.54 GB peak resident memory
   (1.8 GB before zones were batched).

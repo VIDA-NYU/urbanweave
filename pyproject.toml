@@ -7,11 +7,21 @@ name = "urbanweave"
 dynamic = ["version"]
 description = "Spatial integration for urban analysis: match sources to targets and aggregate their values, vector and grid."
 readme = "README.md"
-license = "BSD-3-Clause"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
-authors = [{ name = "Claudio Silva" }]
+authors = [{ name = "Claudio Silva" }, { name = "New York University" }]
+maintainers = [{ name = "OSCUR, VIDA-NYU" }]
+keywords = ["spatial integration", "urban analytics", "gis", "h3", "raster", "zonal statistics", "openstreetmap"]
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: GIS",
 ]
 # The core: vector and H3 matching and aggregation.
@@ -23,6 +33,13 @@ dependencies = [
     "geopandas>=1.0",
     "h3>=4.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/VIDA-NYU/urbanweave"
+Repository = "https://github.com/VIDA-NYU/urbanweave"
+Issues = "https://github.com/VIDA-NYU/urbanweave/issues"
+Documentation = "https://github.com/VIDA-NYU/urbanweave/tree/main/tutorials"
+Design = "https://github.com/VIDA-NYU/urbanweave/blob/main/DESIGN.md"
 
 [project.optional-dependencies]
 # Zonal statistics and other raster paths.
@@ -45,7 +62,7 @@ path = "src/urbanweave/_version.py"
 packages = ["src/urbanweave"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/urbanweave", "tests", "examples", "README.md", "PLAN.md", "DESIGN.md", "STATUS.md", "pyproject.toml"]
+include = ["src/urbanweave", "tests", "examples", "README.md", "PLAN.md", "DESIGN.md", "STATUS.md", "LICENSE", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

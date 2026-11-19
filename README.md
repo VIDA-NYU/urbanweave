@@ -4,6 +4,11 @@ Spatial integration for urban analysis: weave data from many sources (points, li
 rasters, H3 cells) onto the places urban analysis asks about (zones, streets, grids), with explicit
 measurement, value kinds and reports of what each step did.
 
+```bash
+pip install --pre urbanweave                  # the core: vector and H3 (an alpha release)
+pip install --pre "urbanweave[raster,osm]"    # with raster zonal statistics and OpenStreetMap streets
+```
+
 ```python
 import urbanweave as uw
 
@@ -37,13 +42,13 @@ zones = uw.aggregate(uw.match(grid, nta, "area_overlap"), None, [uw.sum("crashes
   conventions on urbanweave; `urbanweave.compat.curio` has drop-in versions of Curio's UHVI and
   Weather zonal means.
 
-**Tutorials:** eight notebooks in [tutorials/](tutorials/README.md) introduce the data models with schematic
+**Tutorials:** eight notebooks in [tutorials/](https://github.com/VIDA-NYU/urbanweave/blob/main/tutorials/README.md) introduce the data models with schematic
 figures, then walk through matching, aggregation, H3, rasters, streets and plans on a synthetic town, with
 SVG maps; they run offline.
 
-The design, with the project's history and goals, is in [DESIGN.md](DESIGN.md),
-the sequence and release gates in [PLAN.md](PLAN.md), and where each plan item stands in
-[STATUS.md](STATUS.md).
+The design, with the project's history and goals, is in [DESIGN.md](https://github.com/VIDA-NYU/urbanweave/blob/main/DESIGN.md),
+the sequence and release gates in [PLAN.md](https://github.com/VIDA-NYU/urbanweave/blob/main/PLAN.md), and where each plan item stands in
+[STATUS.md](https://github.com/VIDA-NYU/urbanweave/blob/main/STATUS.md).
 
 ## Development
 
@@ -59,3 +64,16 @@ uv pip install --python .venv -e '.[raster,osm,dev]'
 
 Tests that compare with UrbanTrace and Curio run their code as copied into `tests/legacy/` at the
 revisions recorded there; Curio's sample data is read in place from `CURIO_REPO` (default `../curio`).
+
+## License and acknowledgements
+
+MIT. Copyright (c) 2026 Claudio Silva and New York University. Developed by the OSCUR team at
+[VIDA-NYU](https://github.com/VIDA-NYU).
+
+urbanweave is part of [OSCUR](https://oscur.org/), the Open-Source Cyberinfrastructure for Urban
+Computing project, supported by the National Science Foundation under Awards
+[#2411221](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2411221),
+[#2411222](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2411222) and
+[#2411223](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2411223). Any opinions, findings, and
+conclusions or recommendations expressed in this material are those of the authors and do not
+necessarily reflect the views of the National Science Foundation.
