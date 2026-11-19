@@ -4,7 +4,7 @@ As of 2026-11-19. UrbanTrace and Curio were only read: their code is copied into
 at the revisions recorded there, and nothing in either repository was changed. Steps that must
 happen inside those repositories are marked **in the consumer**: urbanweave provides what they call.
 
-Tests: 111 in the regular suite (`pytest -q`), plus the Milan comparison (`-m slow`). They pass on
+Tests: 115 in the regular suite (`pytest -q`), plus the Milan comparison (`-m slow`). They pass on
 Python 3.13 with current releases, and on Python 3.11 with the lowest versions pyproject.toml allows
 (NumPy 1.26, pandas 2.2, Shapely 2.0.4, pyproj 3.6, GeoPandas 1.0, h3 4.1, rasterio 1.4.0,
 exactextract 0.2.0, OSMnx 2.0.0). The wheel installs and imports with no extras.
@@ -89,5 +89,7 @@ rasterization and resampling, A5, interpolation, other targets.
 ## Benchmarks (synthetic stand-ins, this machine)
 
 - 500,000 points onto 7,434 H3 resolution-9 cells over NYC: match 0.85 s, aggregate 0.09 s.
+- Vector results agree with Tobler's area interpolation (`tests/test_tobler.py`: extensive with
+  `allocate_total=False`, intensive, categorical shares, and a target half outside the sources).
 - Land-cover shares, 8,000 × 8,000 1 m tiled GeoTIFF, 500 zones: 4.3 s, 0.54 GB peak resident memory
   (1.8 GB before zones were batched).
