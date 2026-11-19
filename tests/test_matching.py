@@ -180,3 +180,36 @@ def test_density_in_square_kilometres_and_per_overlap_length():
     out = uw.aggregate(uw.match(per_street, zone, "length_weighted", shared_boundary="lowest_target_id"), None,
                        [uw.density("crashes", as_="per_road_km", denominator="overlap_length")])
     assert out["per_road_km"].iloc[0] == pytest.approx(2.0, **TOL)
+
+
+def test_coordinates_out_of_geographic_range():
+    from shapely.geometry import Point, box
+
+    zones = gpd.GeoDataFrame({"target_id": ["z"]}, geometry=[box(-74.0, 40.7, -73.9, 40.8)], crs=4326)
+    # One corrupt latitude among good points: excluded and reported by cause, the rest matched.
+    pts = gpd.GeoDataFrame(geometry=[Point(-73.95, 40.75), Point(-73.95, 4.0e8)], crs=4326)
+    m = uw.match(pts, zones, "contain")
+    assert list(m.pairs["source_id"]) == [0]
+    assert m.report["sources"]["excluded"]["coordinates_out_of_range"]["count"] == 1
+    # Every coordinate out of range: a mislabelled CRS (State Plane feet labelled 4326), refused.
+    feet = gpd.GeoDataFrame(geometry=[Point(990_000, 200_000), Point(1_000_000, 210_000)], crs=4326)
+    with pytest.raises(InputError, match="mislabelled"):
+        uw.match(feet, zones, "contain")
+    # The same values in a projected CRS are fine.
+    assert not uw.inputs.out_of_geographic_range(feet.geometry.array, feet.set_crs(2263, allow_override=True).crs).any()
+
+
+def test_compat_grid_ignores_corrupt_coordinates():
+    from shapely.geometry import Point
+
+    from urbanweave.compat import urbantrace as compat
+
+    # The corners set the grid's extent; the interior point lies in a cell whose center is inside it.
+    pts = gpd.GeoDataFrame({"v": [1.0, 2.0, 3.0, 5.0]},
+                           geometry=[Point(-73.95, 40.75), Point(-73.92, 40.77), Point(-73.935, 40.76),
+                                     Point(-73.95, 4.0e8)], crs=4326)
+    out = compat.run(pts, "v", 9, "BinaryContainment", "SumAggregation")
+    src = out["reports"]["allocation"]["match"]["sources"]
+    assert src["excluded"]["coordinates_out_of_range"]["count"] == 1
+    assert out["grid"]["allocated_val"].sum() == pytest.approx(3.0)
+    assert len(out["grid"]) < 500  # the grid spans the good points, not latitude 4e8

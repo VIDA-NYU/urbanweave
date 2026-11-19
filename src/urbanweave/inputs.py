@@ -127,6 +127,21 @@ def resolve_ids(frame: pd.DataFrame, role: str, id_column: str | None) -> tuple[
     return ids, used
 
 
+def out_of_geographic_range(geoms, crs) -> np.ndarray:
+    """True for each geometry with coordinates outside longitude -180..180 or latitude -90..90.
+
+    Always False in a projected CRS. Such rows are typed in the wrong units or carry swapped or
+    corrupt coordinates; H3 and UTM resolution cannot use them.
+    """
+    geoms = np.asarray(geoms, dtype=object)
+    if crs is None or not getattr(crs, "is_geographic", False) or len(geoms) == 0:
+        return np.zeros(len(geoms), dtype=bool)
+    with np.errstate(invalid="ignore"):
+        b = shapely.bounds(geoms)
+        bad = (b[:, 0] < -180) | (b[:, 2] > 180) | (b[:, 1] < -90) | (b[:, 3] > 90)
+    return bad & ~np.isnan(b).any(axis=1)
+
+
 def prepare_layer(
     frame: gpd.GeoDataFrame,
     role: str,
@@ -178,6 +193,18 @@ def prepare_layer(
     if usable.any():
         invalid[usable] = ~shapely.is_valid(geoms[usable])
 
+    out_of_range = np.zeros(n, dtype=bool)
+    if usable.any():
+        out_of_range[usable] = out_of_geographic_range(geoms[usable], frame.crs)
+    if out_of_range.any() and out_of_range[usable].all():
+        b = shapely.bounds(geoms[usable])
+        raise InputError(
+            f"Every {role} has coordinates outside longitude -180..180 and latitude -90..90 (x up to "
+            f"{np.nanmax(np.abs(b[:, [0, 2]])):.6g}, y up to {np.nanmax(np.abs(b[:, [1, 3]])):.6g}), yet the CRS "
+            f"{frame.crs.to_string()} is geographic: the CRS is probably mislabelled. Set the right one with "
+            "GeoDataFrame.set_crs(..., allow_override=True)."
+        )
+
     if role == "target":
         problems = []
         if null.any():
@@ -186,13 +213,16 @@ def prepare_layer(
             problems.append(f"{int(empty.sum())} empty")
         if invalid.any():
             problems.append(f"{int(invalid.sum())} invalid")
+        if out_of_range.any():
+            problems.append(f"{int(out_of_range.sum())} out-of-range")
         if problems:
-            sample = list(ids[null | empty | invalid][:5])
+            sample = list(ids[null | empty | invalid | out_of_range][:5])
             raise InputError(
                 f"Target geometry must be valid before a support is built: {', '.join(problems)} "
                 f"geometries (IDs {sample}). Repair them first, for example with shapely.make_valid."
             )
-    for cause, mask in (("null_geometry", null), ("empty_geometry", empty), ("invalid_geometry", invalid)):
+    for cause, mask in (("null_geometry", null), ("empty_geometry", empty), ("invalid_geometry", invalid),
+                        ("coordinates_out_of_range", out_of_range)):
         if mask.any():
             excluded[cause] = np.flatnonzero(mask)
             eligible &= ~mask

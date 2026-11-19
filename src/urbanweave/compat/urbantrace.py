@@ -45,7 +45,7 @@ import pandas as pd
 from .. import reducers as R
 from ..aggregation import aggregate
 from ..errors import InputError, UnsupportedError
-from ..inputs import float_array
+from ..inputs import float_array, out_of_geographic_range, prepare_layer
 from ..matching import match
 from ..registry import problems, registry
 from ..targets import h3_cells
@@ -181,7 +181,14 @@ def run(
     src = src.to_crs(4326) if src.crs is not None and not src.crs.equals("EPSG:4326") else src
     values = pd.DataFrame({"source_id": src["source_id"].to_numpy(), "v": src[target_column].to_numpy()})
 
-    cells = h3_cells(tuple(src.total_bounds), resolution)
+    # The grid covers the sources match can use: rows with corrupt geographic coordinates are excluded
+    # there (reported as coordinates_out_of_range) and must not stretch the grid either.
+    geoms = src.geometry
+    in_range = geoms.notna().to_numpy() & ~geoms.is_empty.to_numpy() & ~out_of_geographic_range(geoms.array, src.crs)
+    if not in_range.any():
+        prepare_layer(src, "source", families=None)  # raises with the reason
+        raise InputError("No source has a usable geometry to build the grid over.")
+    cells = h3_cells(tuple(geoms[in_range].total_bounds), resolution)
     m1 = match(src, cells, method, **params)
     red_name, legacy_col = GRID_AGGREGATION[grid_aggregation]
     red = _reduction(red_name, target_column, legacy_col, _basis_ok(m1, legacy_basis))
