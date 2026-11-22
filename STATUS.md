@@ -4,7 +4,7 @@ As of 2026-11-19, version 0.1.0a1. UrbanTrace and Curio were only read: their co
 at the revisions recorded there, and nothing in either repository was changed. Steps that must
 happen inside those repositories are marked **in the consumer**: urbanweave provides what they call.
 
-Tests: 130 in the regular suite (`pytest -q`), plus the Milan comparison (`-m slow`), which also runs the eight tutorial notebooks. They pass on
+Tests: 140 in the regular suite (`pytest -q`), plus the Milan comparison (`-m slow`), which also runs the eight tutorial notebooks. They pass on
 Python 3.13 with current releases, and on Python 3.11 with the lowest versions pyproject.toml allows
 (NumPy 1.26, pandas 2.2, Shapely 2.0.4, pyproj 3.6, GeoPandas 1.0, h3 4.1, rasterio 1.4.0,
 exactextract 0.2.0, OSMnx 2.0.0). The wheel installs and imports with no extras.

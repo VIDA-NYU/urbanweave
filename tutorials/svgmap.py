@@ -11,6 +11,8 @@ Conventions (from the data-visualization guidance these maps follow):
 
 - One CRS per map: the first layer's, or a local UTM zone when that is geographic.
 - Magnitudes use one hue, light to dark, in up to seven classes, with the class bounds in the legend.
+  Signed changes (``scheme="diverging"``, seven classes, eight explicit bounds) use red and blue arms
+  around a gray midpoint class.
   Categories use at most three hues; further categories fold into "other".
 - Missing values are hatched and named in the legend, so they never read as a measured zero.
 - Every feature carries a hover tooltip (its ID and the mapped value).
@@ -33,6 +35,10 @@ from pyproj import CRS, Transformer
 # Reference palette (light, dark). Sequential: blue 100..700 in seven classes.
 SEQ_LIGHT = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
 SEQ_DARK = ["#0d366b", "#184f95", "#256abf", "#3987e5", "#6da7ec", "#9ec5f4", "#cde2fb"]
+# Diverging: red (less) <-> gray midpoint <-> blue (more), three steps per arm. The red arm matches
+# the blue ramp's OKLab lightness steps at the hue of the categorical red.
+DIV_LIGHT = ["#8e2525", "#dd504d", "#f5aca5", "#f0efec", "#9ec5f4", "#3987e5", "#184f95"]
+DIV_DARK = ["#f5aca5", "#dd504d", "#8e2525", "#383835", "#184f95", "#3987e5", "#9ec5f4"]
 CAT_LIGHT = ["#2a78d6", "#eb6834", "#1baf7a"]
 CAT_DARK = ["#3987e5", "#d95926", "#199e70"]
 OTHER = "#898781"
@@ -40,10 +46,10 @@ OTHER = "#898781"
 STYLE = """
 .uwmap { --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781; --rule:#c3c2b7;
   --line:#52514e; --dot:#0b0b0b; --link:#eb6834; --halo:#fcfcfb; --hatch:#c3c2b7;
-  %(seq_l)s %(cat_l)s }
+  %(seq_l)s %(div_l)s %(cat_l)s }
 @media (prefers-color-scheme: dark) { .uwmap { --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7;
   --muted:#898781; --rule:#383835; --line:#c3c2b7; --dot:#f0efec; --link:#d95926; --halo:#1a1a19;
-  --hatch:#52514e; %(seq_d)s %(cat_d)s }
+  --hatch:#52514e; %(seq_d)s %(div_d)s %(cat_d)s }
   .uwmap .light-only { display:none } }
 @media not (prefers-color-scheme: dark) { .uwmap .dark-only { display:none } }
 .uwmap text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink2); font-size: 11px }
@@ -105,7 +111,7 @@ def _hex_rgb(h: str) -> tuple[int, int, int]:
 class _Scale:
     """How a column maps to a color slot: sequential classes or categories."""
 
-    kind: str  # "sequential" | "categorical"
+    kind: str  # "sequential" | "diverging" | "categorical"
     bounds: list = field(default_factory=list)  # class edges (sequential)
     categories: list = field(default_factory=list)
     title: str = ""
@@ -120,7 +126,7 @@ class _Scale:
             return f"var(--c{i})" if i is not None else OTHER
         k = int(np.searchsorted(self.bounds[1:-1], float(v), side="right"))
         k = min(k, len(self.bounds) - 2)
-        return f"var(--s{k})"
+        return f"var(--{'d' if self.kind == 'diverging' else 's'}{k})"
 
     def hex(self, v, dark: bool) -> str | None:
         s = self.slot(v)
@@ -129,7 +135,8 @@ class _Scale:
         if s == OTHER:
             return OTHER
         i = int(s[s.index("--") + 3:-1])
-        return ((SEQ_DARK if dark else SEQ_LIGHT) if s.startswith("var(--s") else (CAT_DARK if dark else CAT_LIGHT))[i]
+        ramps = {"s": (SEQ_LIGHT, SEQ_DARK), "d": (DIV_LIGHT, DIV_DARK), "c": (CAT_LIGHT, CAT_DARK)}[s[6]]
+        return ramps[dark][i]
 
 
 def _isna(v) -> bool:
@@ -156,8 +163,10 @@ def _nice_bounds(values: np.ndarray, classes: int) -> list[float]:
 class Map:
     """A static SVG map built from layers. Methods return the map, so calls chain."""
 
-    def __init__(self, title: str = "", *, width: int = 640, crs=None, extent=None, pad: float = 0.03):
+    def __init__(self, title: str = "", *, width: int = 640, crs=None, extent=None, pad: float = 0.03,
+                 show_legend: bool = True):
         self.title, self.width, self.crs, self.extent, self.pad = title, width, crs, extent, pad
+        self.show_legend = show_legend  # False for small multiples that share one legend
         self._layers: list[tuple] = []
         self._legends: list[_Scale] = []
         self._notes: list[str] = []
@@ -231,7 +240,9 @@ class Map:
         nonnull = s.dropna()
         numeric = bool(pd.to_numeric(nonnull, errors="coerce").notna().all()) and not pd.api.types.is_bool_dtype(s)
         kind = scheme or ("sequential" if numeric else "categorical")
-        if kind == "sequential":
+        if kind == "diverging" and (bounds is None or len(bounds) != len(DIV_LIGHT) + 1):
+            raise ValueError(f"A diverging scale needs {len(DIV_LIGHT) + 1} bounds.")
+        if kind in ("sequential", "diverging"):
             s = pd.to_numeric(s, errors="coerce")
         missing = bool(s.isna().any())
         if kind == "categorical":
@@ -245,7 +256,7 @@ class Map:
         else:
             vals = np.asarray(s, dtype=float)
             edges = list(bounds) if bounds is not None else _nice_bounds(vals, classes)
-            scale = _Scale("sequential", bounds=edges, title=legend or column, has_missing=missing)
+            scale = _Scale(kind, bounds=edges, title=legend or column, has_missing=missing)
         self._legends.append(scale)
         return scale
 
@@ -449,9 +460,10 @@ class Map:
                     body.append(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" stroke="var(--link)" '
                                 f'stroke-width="{max(0.75, max_w * wi / wmax) if qty else 1.5:.2f}" stroke-linecap="round">'
                                 f'<title>{tip}</title></line>')
-        legend, lh = self._legend_svg(top + H_map + 10)
+        legend, lh = self._legend_svg(top + H_map + 10) if self.show_legend else ("", 0.0)
         H = top + H_map + lh + 6
         style = STYLE % {"seq_l": _vars("s", SEQ_LIGHT), "seq_d": _vars("s", SEQ_DARK),
+                         "div_l": _vars("d", DIV_LIGHT), "div_d": _vars("d", DIV_DARK),
                          "cat_l": _vars("c", CAT_LIGHT), "cat_d": _vars("c", CAT_DARK)}
         title = f'<text class="title" x="1" y="18">{html.escape(self.title)}</text>' if self.title else ""
         return (f'<svg xmlns="http://www.w3.org/2000/svg" class="uwmap" width="{W}" height="{H:.0f}" '
@@ -469,12 +481,13 @@ class Map:
             out.append(f'<text x="{x}" y="{y + h + 10:.1f}" style="fill:var(--ink);font-weight:600">'
                        f'{html.escape(str(scale.title))}</text>')
             yy = y + h + 16
-            if scale.kind == "sequential":
+            if scale.kind in ("sequential", "diverging"):
+                v = "d" if scale.kind == "diverging" else "s"
                 n = len(scale.bounds) - 1
                 sw = min(64, (self.width - 120) / max(n, 1))
                 for k in range(n):
                     out.append(f'<rect x="{x + k * sw:.1f}" y="{yy:.1f}" width="{sw - 2:.1f}" height="10" rx="2" '
-                               f'style="fill:var(--s{k})"/>')
+                               f'style="fill:var(--{v}{k})"/>')
                 for k, e in enumerate(scale.bounds):
                     out.append(f'<text x="{x + k * sw - (1 if k else 0):.1f}" y="{yy + 23:.1f}" '
                                f'text-anchor="{"start" if k == 0 else "middle"}">{_short(e)}</text>')
@@ -491,7 +504,7 @@ class Map:
             if scale.has_missing:
                 out.append(f'<rect x="{xm:.1f}" y="{yy:.1f}" width="10" height="10" rx="2" fill="url(#uw-hatch)" '
                            f'stroke="var(--rule)"/><text x="{xm + 14:.1f}" y="{yy + 9:.1f}">missing</text>')
-            h += 46 if scale.kind == "sequential" else 34
+            h += 34 if scale.kind == "categorical" else 46
         for note in self._notes:
             out.append(f'<text x="1" y="{y + h + 8:.1f}" style="fill:var(--muted)">{html.escape(note)}</text>')
             h += 16

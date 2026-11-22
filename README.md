@@ -49,7 +49,8 @@ SVG maps; they run offline.
 **Example:** [NYC taxi pickups from zone counts](https://github.com/VIDA-NYU/urbanweave/blob/main/examples/nyc_taxi/README.md)
 recovers block-level taxi pickups for 2016–2021, when TLC published only taxi zones, by dasymetric
 disaggregation with 2013's coordinates as the prior: four `match`/`aggregate` calls, tested against
-a month with known locations.
+a month with known locations. A second notebook carries every month of 2016–2025 (655 million trips,
+one `dasymetric` call) down to H3 cells and then to Manhattan's street segments.
 
 The design, with the project's history and goals, is in [DESIGN.md](https://github.com/VIDA-NYU/urbanweave/blob/main/DESIGN.md),
 the sequence and release gates in [PLAN.md](https://github.com/VIDA-NYU/urbanweave/blob/main/PLAN.md), and where each plan item stands in
