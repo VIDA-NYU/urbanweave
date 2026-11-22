@@ -1,6 +1,6 @@
 # Status against PLAN.md
 
-As of 2026-11-19, version 0.1.0a1. UrbanTrace and Curio were only read: their code is copied into `tests/legacy/`
+As of 2026-11-22, version 0.1.0a2. UrbanTrace and Curio were only read: their code is copied into `tests/legacy/`
 at the revisions recorded there, and nothing in either repository was changed. Steps that must
 happen inside those repositories are marked **in the consumer**: urbanweave provides what they call.
 
@@ -13,8 +13,8 @@ exactextract 0.2.0, OSMnx 2.0.0). The wheel installs and imports with no extras.
 
 - Repository: [VIDA-NYU/urbanweave](https://github.com/VIDA-NYU/urbanweave), maintained by the OSCUR
   team; MIT, copyright Claudio Silva and New York University.
-- PyPI: `urbanweave` 0.1.0a1, an alpha prerelease that claims the name (`pip install --pre
-  urbanweave`). `.github/workflows/release.yml` builds and checks the wheel and sdist, runs the tests
+- PyPI: `urbanweave` 0.1.0a2 (adds `dasymetric()`), after 0.1.0a1, which claimed the name; alpha
+  prereleases (`pip install --pre urbanweave`). `.github/workflows/release.yml` builds and checks the wheel and sdist, runs the tests
   against the installed wheel, and publishes through PyPI trusted publishing when a `v*` tag matching
   `_version.py` is pushed; no token is stored.
 

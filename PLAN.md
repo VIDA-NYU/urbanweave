@@ -12,7 +12,7 @@ Milestones 0, 1, 3.1 and 4 are implemented in this repository, and every accepta
 in the regular suite, plus the Milan comparison under `-m slow`); benchmarks still run on synthetic
 stand-ins for the NYC data. The steps of milestones 2, 3.2 and 4.2 that change UrbanTrace or Curio are
 marked **in the consumer**: urbanweave provides what they call, but neither repository has been modified.
-Milestone 5 has not started. The first prerelease, 0.1.0a1, is released from
+Milestone 5 has not started. The prereleases (0.1.0a1, then 0.1.0a2 with `dasymetric()`) are released from
 [VIDA-NYU/urbanweave](https://github.com/VIDA-NYU/urbanweave), maintained by the OSCUR team.
 [STATUS.md](STATUS.md) maps each item to its code and tests.
 
@@ -182,7 +182,7 @@ available. Keep library releases independent of consumer deployment schedules.
 - [ ] Pin the package prerelease in UrbanTrace, exercise the new path alongside the existing one, and record
       the operator mapping and fallback switch. Make the package path the default only after the compatibility
       review passes. Verify the previous pinned path in a rollback smoke test.
-      **In the consumer.** The prerelease is 0.1.0a1, published from VIDA-NYU/urbanweave by
+      **In the consumer.** The current prerelease is 0.1.0a2, published from VIDA-NYU/urbanweave by
       `.github/workflows/release.yml` when its tag is pushed.
 
 ### Exit checklist
